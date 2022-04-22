@@ -7,27 +7,25 @@ form Find Speaking Fluency
     comment     it in the default file location. This means using the default file will run with previous settings.
 
     boolean Run_Settings_Wizard yes
-    sentence Configuration_File dynamicfluency_configuration.txt
+    sentence Configuration_File configuration.txt
     endform
-
-if run_Settings_Wizard
-    runScript: "dynamicfluency_configurationwizard.praat"
-    endif
-if run_Settings_Wizard
-    configiration_File$ = "dynamicfluency_configuration.txt"
-    endif
 
 @read_config
 
 procedure read_config
+
+    if run_Settings_Wizard
+        runScript: "configurationwizard.praat"
+        endif
+    if run_Settings_Wizard
+        configiration_File$ = "configuration.txt"
+        endif
+
     config = Read Strings from raw text file: configuration_File$
-    writeInfoLine("Parsing config files")
-    numberOfLines = Get number if strings
+    numberOfLines = Get number of strings
     
-    for i from 0 to numberOfLines
-        line = Get string: i
-        appendInfoLine: line
-        endfor
+    header$ = Get string: 1
+    assert header$ == "DynamicFluency configuration file"
     
     removeObject: config
     endproc

@@ -29,9 +29,9 @@ beginPause: "Uhm-o-meter settings"
         option: "None"
         option: "Band pass (300..3300 Hz)"
         option: "Reduce noise"
-    real: "Silence_threshold_(dB)", -25
-    real: "Minimum_dip_near_peak_(dB)", 2
-    real: "Minimum_pause_duration_(s)", 0.3
+    real: "Silence_threshold_dB", -25
+    real: "Minimum_dip_near_peak_dB", 2
+    real: "Minimum_pause_duration_s", 0.3
 #   real: "Pitch_floor_(Hz)", 30
 #   real: "Voicing_threshold", 0.25
 #   optionMenu: "Parser", 2
@@ -42,3 +42,21 @@ beginPause: "Uhm-o-meter settings"
     boolean: "Detect_Filled_Pauses", 1
     real: "Filled_Pause_threshold", 1.00
 endPause: "Next", 1
+
+# A simple but ugly write to file.
+id = Create Strings from tokens: "configuration", "DynamicFluency configuration file", "_"
+
+Insert string: 2, ""
+Insert string: 3, "Global Settings"
+Insert string: 4, "OS = " + operating_System$
+Insert string: 5, ""
+Insert string: 6, "Uhm-o-meter Settings"
+Insert string: 7, "Pre-processing = " + pre_processing$
+Insert string: 8, "Silence Treshhold = " + string$(silence_threshold_dB)
+Insert string: 9, "Minimum dip near peak = " + string$(minimum_dip_near_peak_dB)
+Insert string: 10, "Minimum pause duration = " + string$(minimum_pause_duration_s)
+Insert string: 11, "Filled pause threshold = " + string$(filled_Pause_threshold)
+
+Save as raw text file: "configuration.txt"
+
+removeObject: id

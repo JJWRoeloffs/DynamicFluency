@@ -1,0 +1,11 @@
+DynamicFluency configuration file
+
+Global Settings
+OS = Windows
+
+Uhm-o-meter Settings
+Pre-processing = None
+Silence Treshhold = -25
+Minimum dip near peak = 2
+Minimum pause duration = 0.3
+Filled pause threshold = 1

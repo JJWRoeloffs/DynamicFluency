@@ -18,8 +18,8 @@ form Detect Syllables and Filled Pauses in Speech Utterances
     option Linux
     #button MacOS (Not Implemented)
   
-  sentence OutFile ../outputdata/*.wav
-  sentence InFile ../imputdata/*.wav
+  sentence OutFile ./input/*.wav
+  sentence InFile ./output/*.wav
 
   optionmenu Pre_processing 1
     option None
