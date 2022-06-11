@@ -10,17 +10,19 @@
 # Original by:
 # Copyright (C) 2019  Nivja de Jong, Ton Wempe, Jos J A Pacilly
 #
-#	This fork by J J W Roeloffs is slightly edited to work in the Dynamic Fluency system.
+#	This fork by J J W Roeloffs is edited to work in the Dynamic Fluency system.
+
 
 form Detect Syllables and Filled Pauses in Speech Utterances
-  optionmenu Operating_System 1
+  optionmenu Os 1
     option Windows
     option Linux
-    #button MacOS (Not Implemented)
-  
-  sentence OutFile ./input/*.wav
-  sentence InFile ./output/*.wav
+    option Mac
 
+  sentence FileSpec ./*.flac
+  comment ________________________________________________________________________________
+
+  comment  Parameters Syllabe Nuclei:
   optionmenu Pre_processing 1
     option None
     option Band pass (300..3300 Hz)
@@ -28,72 +30,40 @@ form Detect Syllables and Filled Pauses in Speech Utterances
    real Silence_threshold_(dB) -25
    real Minimum_dip_near_peak_(dB) 2
    real Minimum_pause_duration_(s) 0.3
+#  real Pitch_floor_(Hz) 30
+#  real Voicing_threshold 0.25
+# optionmenu Parser 2
+#   option peak-dip		; save code in case anybody requests backwards compatibility
+#   option dip-peak-dip
+  comment ________________________________________________________________________________
 
-  boolean Detect_Filled_Pauses yes
+  comment  Parameters Filled Pauses:
   optionmenu Language 1
     option English
 #   option Mandarin (not yet implemented)
 #   option Spanish  (not yet implemented)
-#   option Dutch (not jet implemented)
+    option Dutch
    real Filled_Pause_threshold 1.00
-
-  optionmenu Data 1
-    option TextGrid(s) only
-    option Praat Info window
-    option Save as text file
-    option Table
-  choice DataCollectionType 2
-    button OverWriteData
-    button AppendData
-  boolean Keep_Objects_(when_processing_files) yes
   endform
 
 # the next arguments are hidden for normal use
+data$             = "TextGrid"
 pitch_floor       = 30
-voicing_threshold =  0.25
+voicing_threshold = 0.25
 parser$           = "dip-peak-dip"
 
 @processArgs
-
-for file to nrObjects
-  selectObject: idSnd#[file]
-  @findSyllableNuclei
-  if detect_Filled_Pauses
-    selectObject: idSnd#[file], idTG#[file]
-    runScript: "FilledPauses.praat", language$, filled_Pause_threshold, data$ == "Table"
-    if data$ == "Table"
-      idTbl#[file] = selected("Table")
-      endif
-    @countFilledPauses: idTG#[file]
-  else
-    @terminateLines
-    endif
-  endfor
 
 for file to nrFiles
   idSnd#[file] = Read from file: directory$ + filename$[file]
   @findSyllableNuclei
   ext$ = right$(filename$[file], length(filename$[file])-rindex(filename$[file], ".")+1)
-  if detect_Filled_Pauses
-    selectObject: idSnd#[file], idTG#[file]
-    runScript: "FilledPauses.praat", language$, filled_Pause_threshold, data$ == "Table"
-    if data$ == "Table"
-      idTbl#[file] = selected("Table")
-      selectObject: idTbl#[file]
-      Save as tab-separated file: directory$ + replace$(filename$[file], ext$, ".auto.Table", 1)
-      endif
-    @countFilledPauses: idTG#[file]
-  else
-    @terminateLines
-    endif
+  selectObject: idSnd#[file], idTG#[file]
+  runScript: "FilledPauses.praat", language$, filled_Pause_threshold, data$ == "Table"
+  @countFilledPauses: idTG#[file]
   selectObject: idTG#[file]
   Save as text file: directory$ + replace$(filename$[file], ext$, ".auto.TextGrid", 1)
-  if not keep_Objects
-    removeObject: idSnd#[file], idTG#[file]
-    if detect_Filled_Pauses and data$ == "Table"
-      removeObject: idTbl#[file]
-      endif
-    endif
+  removeObject: idSnd#[file], idTG#[file]
   endfor
 
 @coda
@@ -255,20 +225,6 @@ procedure findSyllableNuclei
     removeObject: idSnd
     endif
   idTG#[file] = idTG
-
-# summarize results in Info window
-  speakingrate = voicedcount / dur
-  articulationrate = voicedcount / speakingtot
-  npause = nsounding - 1
-  asd = speakingtot / voicedcount
-
-  if data$ == "Praat Info window"
-    appendInfo: "'name$', 'voicedcount', 'npause', 'dur:2', 'speakingtot:2', 'speakingrate:2', 'articulationrate:2', 'asd:3'"
-  elif data$ == "Save as text file"
-    appendFile: "SyllableNuclei.txt", "'name$', 'voicedcount', 'npause', 'dur:2', 'speakingtot:2', 'speakingrate:2', 'articulationrate:2', 'asd:3'"
-  elif data$ == "Table"
-    appendFile: temporaryDirectory$ + "/SyllableNuclei.tmp", "'name$', 'voicedcount', 'npause', 'dur:2', 'speakingtot:2', 'speakingrate:2', 'articulationrate:2', 'asd:3'"
-    endif
   endproc
 
 procedure countFilledPauses: .id
@@ -285,53 +241,24 @@ procedure countFilledPauses: .id
       .tFP += (.te - .ts)
       endif
     endfor
-  if data$ == "Praat Info window"
-    appendInfoLine: ", '.nrFP', '.tFP:3'"
-  elif data$ == "Save as text file"
-    appendFileLine: "SyllableNuclei.txt", ", '.nrFP', '.tFP:3'"
-  elif data$ == "Table"
-    appendFileLine: temporaryDirectory$ + "/SyllableNuclei.tmp", ", '.nrFP', '.tFP:3'"
-    endif
-  endproc
-
-procedure terminateLines
-  if data$ == "Praat Info window"
-    appendInfoLine: ""
-  elif data$ == "Save as text file"
-    appendFileLine: "SyllableNuclei.txt", ""
-  elif data$ == "Table"
-    appendFileLine: temporaryDirectory$ + "/SyllableNuclei.tmp", ""
-    endif
   endproc
 
 procedure processArgs
-  nrObjects = numberOfSelected("Sound")
-  nrStr     = numberOfSelected("Strings")
 
-  if nrObjects and nrStr == 0
-    idSnd#  = selected#("Sound")
-    idTG#   = zero#(nrObjects)
-    idTbl#  = zero#(nrObjects)
-    nrFiles = 0
-  elif nrStr and nrObjects == 0
-    for str to nrStr
-      idStr[str] = selected("Strings", str)
-      endfor
-    idStr = Append
-    nrFiles    = Get number of strings
-    directory$ = ""
-  elif nrStr == 0 and fileSpec$ <> ""
-    len        = length(fileSpec$)
-    sep        = rindex_regex(fileSpec$, "[\\/]")
-    directory$ =  left$(fileSpec$, sep)
-    selection$ = right$(fileSpec$, len-sep)
-    idStr      = Create Strings as file list: "fileList", directory$ + selection$
-    nrFiles    = Get number of strings
-    nrObjects  = 0
-#   appendInfoLine: directory$ + selection$
+  nrObjects = 0
+  nrStr     = 0
+
+  len        = length(fileSpec$)
+  sep        = rindex_regex(fileSpec$, "[\\/]")
+  if os$ = "Windows"
+    directory$ = "..\\..\\" + left$(fileSpec$, sep)
   else
-    exit Unsupported Input Selection
+    directory$ = "../../" + left$(fileSpec$, sep)
     endif
+  selection$ = right$(fileSpec$, len-sep)
+  idStr      = Create Strings as file list: "fileList", directory$ + selection$
+  nrFiles    = Get number of strings
+  nrObjects  = 0
 
   if nrFiles
     idSnd# = zero#(nrFiles)
@@ -341,58 +268,8 @@ procedure processArgs
   for file to nrFiles
     filename$[file] = Get string: file
     endfor
-
-  if data$ == "Praat Info window" and dataCollectionType$ == "OverWriteData"
-# print a single header line with column names and units
-    writeInfo: "name, nsyll, npause, dur(s), phonationtime(s), speechrate(nsyll/dur), articulation_rate(nsyll/phonationtime), ASD(speakingtime/nsyll)"
-  elif data$ == "Save as text file" and dataCollectionType$ == "OverWriteData"
-    writeFile: "SyllableNuclei.txt", "name, nsyll, npause, dur(s), phonationtime(s), speechrate(nsyll/dur), articulation_rate(nsyll/phonationtime), ASD(speakingtime/nsyll)"
-  elif data$ == "Table"
-    writeFile: temporaryDirectory$ + "/SyllableNuclei.tmp", "name, nsyll, npause, dur(s), phonationtime(s), speechrate(nsyll/dur), articulation_rate(nsyll/phonationtime), ASD(speakingtime/nsyll)"
-    endif
-
-  if detect_Filled_Pauses
-    if data$ == "Praat Info window" and dataCollectionType$ == "OverWriteData"
-      appendInfoLine: ", nrFP, tFP(s)"
-    elif data$ == "Save as text file" and dataCollectionType$ == "OverWriteData"
-      appendFileLine: "SyllableNuclei.txt", ", nrFP, tFP(s)"
-    elif data$ == "Table"
-      appendFileLine: temporaryDirectory$ + "/SyllableNuclei.tmp", ", nrFP, tFP(s)"
-      endif
-  else
-    if data$ == "Praat Info window" and dataCollectionType$ == "OverWriteData"
-      appendInfoLine: ""
-    elif data$ == "Save as text file" and dataCollectionType$ == "OverWriteData"
-      appendFileLine: "SyllableNuclei.txt", ""
-    elif data$ == "Table"
-      appendFileLine: temporaryDirectory$ + "/SyllableNuclei.tmp", ""
-      endif
-    endif
   endproc
 
 procedure coda
-  if nrObjects and nrStr == 0
-    selectObject: idTG#
-    if detect_Filled_Pauses and data$ == "Table"
-      plusObject: idTbl#
-      endif
-  elif nrStr
-    selectObject: idStr
-    Remove
-    for str to nrStr
-      plusObject: idStr[str]
-      endfor
-  elif nrStr == 0 and fileSpec$ <> ""
-    removeObject: idStr
-    endif
-  if data$ == "Table"
-    Read Table from comma-separated file: temporaryDirectory$ + "/SyllableNuclei.tmp"
-    deleteFile: temporaryDirectory$ + "/SyllableNuclei.tmp"
-    endif
-  if nrFiles and keep_Objects
-    selectObject: idSnd#, idTG#
-    if detect_Filled_Pauses and data$ == "Table"
-      plusObject: idTbl#
-      endif
-    endif
+  removeObject: idStr
   endproc

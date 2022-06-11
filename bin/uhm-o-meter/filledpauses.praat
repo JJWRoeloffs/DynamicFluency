@@ -4,20 +4,40 @@
 #	local (syllable specific) parameters for automatic detection of Filled Pauses.
 #
 #	Optionally, save the local parameters for all syllables in a table.
-# 
-# Original by
+#
 #	J J A Pacilly,  1-nov-2019, for Nivja de Jong, on behalf of:
 #	  British Council, Aptis Research Grants
 #	J J A Pacilly, 14-feb-2020, retain max. similarity with version for internal use
 #
-#	This fork by J J W Roeloffs is slightly edited to work in the Dynamic Fluency system.
+#	Note that this script is used by "SyllableNucleiv3.Praat", but it can also
+#	be used as a standalone script with a selected Sound and Textgrid object
+#	as long as this TextGrid contains a pointTier with the name "Nuclei".
+#
+#	The settings and thresholds in this script are trained and tested on
+#	Dutch and English L2 data. See [LINK?] the ARAG report by De Jong and
+#	Pacilly (2019) for more information.
+#
+#	Copyright (C) 2019 - J J A Pacilly & N H de Jong, LUCL - Universiteit Leiden
+#
+#	This program is free software: you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation, either version 3 of the License, or
+#	(at your option) any later version.
+#
+#	This program is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#	See the GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with this program.  If not, see http://www.gnu.org/licenses/
 
 form Detect Filled Pauses
   optionmenu Language 1
     option English
 #   option Mandarin (not yet implemented)
 #   option Spanish  (not yet implemented)
-#   option Dutch (not jet implemented)
+    option Dutch
   real Filled_Pause_threshold 1.00  ; cut-off higher/lower
   boolean Save_Table 0
   endform
@@ -513,5 +533,4 @@ procedure processData: .idTG, .name$, .type$
       endif
     endfor
   endproc
-
-
+  
