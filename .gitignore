@@ -141,3 +141,6 @@ dmypy.json
 # Data used for testing
 *.wav
 *.TextGrid
+*.mp3
+*.flac
+test/
