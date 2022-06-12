@@ -62,7 +62,7 @@ for file to nrFiles
   runScript: "FilledPauses.praat", language$, filled_Pause_threshold, data$ == "Table"
   @countFilledPauses: idTG#[file]
   selectObject: idTG#[file]
-  Save as text file: directory$ + replace$(filename$[file], ext$, ".auto.TextGrid", 1)
+  Save as text file: directory$ + replace$(filename$[file], ext$, ".uhm.TextGrid", 1)
   removeObject: idSnd#[file], idTG#[file]
   endfor
 
