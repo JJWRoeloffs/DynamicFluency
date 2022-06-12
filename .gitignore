@@ -144,3 +144,5 @@ dmypy.json
 *.mp3
 *.flac
 test/
+input/
+output/
