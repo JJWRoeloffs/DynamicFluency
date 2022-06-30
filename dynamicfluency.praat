@@ -10,16 +10,11 @@ form Find Speaking Fluency
     sentence Configuration_File configuration.txt
     endform
 
-@read_config
+@set_config
 @process_arguments
 
-if operatingSystem$ == "Windows"
-    runScript: "bin\uhm-o-meter\syllablenuclei.praat", operatingSystem$, inputFileSpec$, preProcessing$, silenceTreshhold, minimumDipNearPeak, minimumPauseDuration, language$, filledPauseThreshold 
-    @uhm_postprocessing_windows
-else
-    runScript: "bin/uhm-o-meter/syllablenuclei.praat", operatingSystem$, inputFileSpec$, pre_processing$, silence_treshhold, minimum_dip_near_peak, minimum_pause_duration, language$, filled_Pause_threshold
-    @uhm_postprocessing_unix
-    endif
+runScript: "bin" + pathSep$ + "uhm-o-meter" + pathSep$ + "syllablenuclei.praat", operatingSystem$, inputFileSpec$, preProcessing$, silenceTreshhold, minimumDipNearPeak, minimumPauseDuration, language$, filledPauseThreshold 
+@uhm_postprocessing
 
 if allignment$ = "aeneas"
     @aeneas_preprocessing
@@ -30,25 +25,17 @@ if allignment$ = "aeneas"
         endif
     endif
 
-if allignment$ = "maus"
-    if operatingSystem$ == "Windows" 
-        @maus_windows
-    else
-        @maus_unix
-        endif
+if allignment$ == "maus"
+    @maus
     endif
 
-if operatingSystem$ == "Windows"
-    @postprocessing_windows
-else
-    @postprocessing_unix
-    endif
-
+@postprocessing
 @cleanup
 
+# Runs aeneas from the CMD commandline.
+# This is done instead of running as a python library because the library for python 3 requires local compiling, which is difficult for users to set up on windows.
+# Writing custom Python 2 code would be a safty concern. As little Python 2 is run as possible.
 procedure aeneas_windows
-    inputFolder$  = replace$(inputDirectory$ + "\", "/", "", 0)
-    outputFolder$ = outputDirectory$ + "\"
     idScript      = Create Strings from tokens: "script", "::Automatically generated commandprompt file for dynamicfluency", "."
     for file to nrFiles
         base$ = "py -2.7 -m aeneas.tools.execute_task -r=""cew=False"""
@@ -69,8 +56,8 @@ procedure aeneas_windows
             endif
 
         selectObject: idScript
-        Insert string: 0, base$ + " " + inputFolder$ + soundFile$ + " " + inputFolder$ + tokensFile$[file] + args$ + " " + outputFolder$ + outputFileTokens$
-        Insert string: 0, base$ + " " + inputFolder$ + soundFile$ + " " + inputFolder$ + phrasesFile$[file] + args$ + " " + outputFolder$ + outputFilePhrases$ 
+        Insert string: 0, base$ + " " + inputDir$ + pathSep$ + soundFile$ + " " + inputDir$ + pathSep$ + tokensFile$[file] + args$ + " " + outputDir$ + pathSep$ + outputFileTokens$
+        Insert string: 0, base$ + " " + inputDir$ + pathSep$ + soundFile$ + " " + inputDir$ + pathSep$ + phrasesFile$[file] + args$ + " " + outputDir$ + pathSep$ + outputFilePhrases$ 
         endfor
     Insert string: 0, "py -3 .\bin\aeneas_postprocess.py"
     Save as raw text file: "dynamicfluency_aeneas.auto.cmd"
@@ -79,11 +66,12 @@ procedure aeneas_windows
     deleteFile: "dynamicfluency_aeneas.auto.cmd"
 
     for file to nrFiles 
-        deleteFile: inputFolder$ + tokensFile$[file]
-        deleteFile: inputFolder$ + phrasesFile$[file]
+        deleteFile: inputDir$ + pathSep$ + tokensFile$[file]
+        deleteFile: inputDir$ + pathSep$ + phrasesFile$[file]
         endfor
     endproc
 
+# Parses the transcription into the format Aenas takes.
 procedure aeneas_preprocessing
 
     for file to nrFiles
@@ -92,31 +80,30 @@ procedure aeneas_preprocessing
         soundExt$ = right$(soundFile$, length(soundFile$)-rindex(soundFile$, ".")+1)
 
         if transcriptionFormat$ == "TextGrid"
-            idTrans = Read from file: inputDirectory$ + replace$(soundFile$, soundExt$, ".TextGrid", 1)
+            idTrans = Read from file: inputDir$ + pathSep$ + replace$(soundFile$, soundExt$, ".TextGrid", 1)
             selectObject: idTrans
             transcription$ = Get label of interval: 1, 1
             endif
 
         if transcriptionFormat$ == "txt"
-            idTrans = Read Strings from raw text file: inputDirectory$ + replace$(soundFile$, soundExt$, ".txt", 1)
+            idTrans = Read Strings from raw text file: inputDir$ + pathSep$ + replace$(soundFile$, soundExt$, ".txt", 1)
             selectObject: idTrans
             transcription$ = Get string: 1
             endif
 
         idPhrase = Create Strings from tokens: replace$(soundFile$, soundExt$, ".tokens", 1), transcription$, ",."
-        Save as raw text file: inputDirectory$ + replace$(soundFile$, soundExt$, ".phrases.txt", 1)
+        Save as raw text file: inputDir$ + pathSep$ + replace$(soundFile$, soundExt$, ".phrases.txt", 1)
 
         tokenTranscription$ = replace_regex$(transcription$, "[.,]", "", 0)
         idTokens = Create Strings from tokens: replace$(soundFile$, soundExt$, ".tokens", 1), tokenTranscription$, ""
         selectObject: idTokens
-        Save as raw text file: inputDirectory$ + replace$(soundFile$, soundExt$, ".tokens.txt", 1)
+        Save as raw text file: inputDir$ + pathSep$ + replace$(soundFile$, soundExt$, ".tokens.txt", 1)
         removeObject: idTrans, idTokens, idPhrase
         endfor
     endproc
 
-procedure maus_windows
-    inputFolder$  = replace$(inputDirectory$ + "\", "/", "", 0)
-    outputFolder$ = outputDirectory$ + "\"
+# Moves the .TextGrid files Maus outputs to the correct directory under the correct name
+procedure maus
 
     for file to nrFiles
         selectObject: idSoundsList
@@ -126,25 +113,29 @@ procedure maus_windows
         mausFile$ = replace$(soundFile$, soundExt$, ".TextGrid", 1)
         allignmentFile$ = replace$(soundFile$, soundExt$, ".allignment.TextGrid", 1)
 
-        runSystem: "copy /-Y " + inputFolder$ + mausFile$ + " " + outputFolder$ + allignmentFile$
+        if operatingSystem$ == "Windows"
+            runSystem: "copy /-Y " + inputDir$ + pathSep$ + mausFile$ + " " + outputDir$ + pathSep$ + allignmentFile$
+        else
+            runSystem: "mv " + inputDir$ + pathSep$ + mausFile$ + " " + outputDir$ + pathSep$ + allignmentFile$
+            endif
         endfor
     endproc
 
-procedure uhm_postprocessing_windows
-    inputFolder$  = replace$(inputDirectory$ + "\", "/", "", 0)
-    outputFolder$ = outputDirectory$ + "\"
-
+# Uhm-o-meter by default creates all files in the same directory as the input.
+# This function moves the files to the output directory.
+procedure uhm_postprocessing
     for file to nrFiles
         selectObject: idSoundsList
         soundFile$ = Get string: file
         soundExt$ = right$(soundFile$, length(soundFile$)-rindex(soundFile$, ".")+1)
 
         uhmFile$ = replace$(soundFile$, soundExt$, ".uhm.TextGrid", 1)
-        runSystem: "move /-Y " + inputFolder$ + uhmFile$ + " " + outputFolder$ + uhmFile$
+        runSystem: "move /-Y " + inputDir$ + pathSep$ + uhmFile$ + " " + outputDir$ + pathSep$  + uhmFile$
         endfor
     endproc
 
-procedure read_config
+# Running adn reading the configuration file and setting global variables acordingly.
+procedure set_config
     if run_Settings_Wizard
         runScript: "configurationwizard.praat"
         configiration_File$ = "configuration.txt"
@@ -159,8 +150,11 @@ procedure read_config
     #General:
     operatingSystem$ = "Windows"
     inputFileSpec$ = "test/*.wav"
-    transcriptionFormat$ = "maus"
+    transcriptionFormat$ = "txt"
     language$ = "English"
+
+    showResultInPraat = 0
+    showIntermediateObjects = 0
 
     #uhm-o-meter:
     preProcessing$ = "None"
@@ -170,18 +164,25 @@ procedure read_config
     filledPauseThreshold = 1
 
     #hidden settings:
-    outputDirectory$ = "output"
+    outputDir$ = "output"
 
     removeObject: idConfig
     endproc
-    
+
+# Processes the user input to set more global variables the script uses.
 procedure process_arguments
     len = length(inputFileSpec$)
     sep = rindex_regex(inputFileSpec$, "[\\/]")
-    inputDirectory$ = left$(inputFileSpec$, sep)
-    selection$      = right$(inputFileSpec$, len-sep)   
+    inputDir$  = left$(inputFileSpec$, sep - 1)
+    selection$ = right$(inputFileSpec$, len-sep)
 
-    idSoundsList = Create Strings as file list: "SoundsList", inputDirectory$ + selection$
+    if operatingSystem$ == "Windows"
+        pathSep$ = "\"
+    else
+        pathSep$ = "/"
+        endif
+
+    idSoundsList = Create Strings as file list: "SoundsList", inputDir$ + pathSep$ + selection$
     nrFiles      = Get number of strings
 
     if (transcriptionFormat$ == "TextGrid") or (transcriptionFormat$ == "txt")
@@ -191,9 +192,9 @@ procedure process_arguments
         endif
     endproc
 
-procedure postprocessing_windows
-    outputFolder$ = outputDirectory$ + "\"
-    inputFolder$  = replace$(inputDirectory$ + "\", "/", "", 0)
+# Takes all the individually generated textgrids from the different tools, and merges them together.
+# Also loads the files into the praat gui if the user asked for this.
+procedure postprocessing
 
     for file to nrFiles
         selectObject: idSoundsList
@@ -202,18 +203,27 @@ procedure postprocessing_windows
 
         uhmFile$ = replace$(soundFile$, soundExt$, ".uhm.TextGrid", 1)
         allignmentFile$ = replace$(soundFile$, soundExt$, ".allignment.TextGrid", 1)
-        mergedFile$ = replace$(soundFile$, soundExt$, ".merged.TextGrid", 1)
+        mergedFile$ = replace$(soundFile$, soundExt$, ".merged.TextGrid", 1) 
 
-        idSound = Read from file: inputFolder$ + soundFile$
-        idUhm = Read from file: outputFolder$ + uhmFile$
-        idAllignment = Read from file: outputFolder$ + allignmentFile$
+        idUhm = Read from file: outputDir$ + pathSep$ + uhmFile$
+        idAllignment = Read from file: outputDir$ + pathSep$ + allignmentFile$
 
         selectObject: idUhm, idAllignment
-        Merge
-        Save as text file: outputFolder$ + mergedFile$
+        idMerged = Merge
+        Save as text file: outputDir$ + pathSep$ + mergedFile$
+        
+        if (showIntermediateObjects == 0) or (showResultInPraat == 0)
+            removeObject: idUhm, idAllignment
+            endif
+        if showResultInPraat == 1
+            idSound = Read from file: inputDir$ + pathSep$ + soundFile$
+        else 
+            removeObject: idMerged
+            endif
         endfor    
     endproc
 
+# Cleans away "global variables" stored as cashed text files.
 procedure cleanup
     selectObject: idSoundsList
     Remove

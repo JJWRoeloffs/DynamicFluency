@@ -24,8 +24,8 @@ class AeneasTextGrid(tg.TextGrid):
         self[tier_name] = tier
 
 def main(): 
-    word_allignments = glob.glob(".\output\*.tokens.json")
-    phrase_allignments = glob.glob(".\output\*.phrases.json")
+    word_allignments = glob.glob("./output/*.tokens.json")
+    phrase_allignments = glob.glob("./output/*.phrases.json")
 
     for i in range(len(word_allignments)):
         grid = AeneasTextGrid()
