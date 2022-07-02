@@ -266,7 +266,7 @@ class TextGrid(OrderedDict):
         if not isinstance(data, bytes):
             raise TypeError
         binary = b'ooBinaryFile\x08TextGrid'
-        text = ['File type = "ooTextFile"', 'Object class = "TextGrid"', '']
+        text = ['File type = "ooTextFile"', 'Object class = "TextGrid"']
         # Check and then discard binary header
         if data[:len(binary)] == binary:
             buff = io.BytesIO(data[len(binary):])
