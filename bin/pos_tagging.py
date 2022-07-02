@@ -27,7 +27,7 @@ def replace_labels(tier: tg.Tier, tags: List[Union[str, str]]) -> tg.Tier:
             word += tags[0][0]
             label = " ".join([label, "_".join(tags[0])])
             tags.pop(0)
-        interval.text = label
+        interval.text = label.strip()
     return tier
             
 
@@ -46,7 +46,8 @@ def main():
         tags: List[Union[str, str]] =  nltk.pos_tag(tokens)
         
         tagged = tg.TextGrid()
-        tagged["POStags"]: tg.Tier = replace_labels(allignment_grid[tokentier], tags) 
+        tagged.xmin, tagged.xmax = allignment_grid.xmin, allignment_grid.xmax
+        tagged["POStags"]: tg.Tier = replace_labels(allignment_grid[tokentier], tags)
 
         name = allignment_grid.filename.replace(".allignment.TextGrid", ".pos_tags.TextGrid")
         tagged.write(name)

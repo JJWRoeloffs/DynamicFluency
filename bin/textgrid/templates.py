@@ -16,6 +16,7 @@ BINARY = 2
 
 long_header = '''File type = "ooTextFile"
 Object class = "TextGrid"
+
 xmin = {}
 xmax = {}
 tiers? <exists>

@@ -35,6 +35,12 @@ else
     runSystem: "pyhon3 ./bin/pos_tagging -d " + outputDir$ + " -a " + allignment$
     endif
 
+if operatingSystem$ == "Windows" 
+    runSystem: "py -3 .\bin\repititions.py -d " + outputDir$ + " -m " + max_repitition_read$
+else
+    runSystem: "pyhon3 ./bin/repititions.py -d " + outputDir$ + " -m " + max_repitition_read$
+    endif
+
 @postprocessing
 @cleanup
 
@@ -170,6 +176,9 @@ procedure set_config
     minimumPauseDuration = 0.3
     filledPauseThreshold = 1
 
+    #Repititions
+    max_repitition_read$ = "300"
+
     removeObject: idConfig
     endproc
 
@@ -207,19 +216,22 @@ procedure postprocessing
 
         uhmFile$ = replace$(soundFile$, soundExt$, ".uhm.TextGrid", 1)
         allignmentFile$ = replace$(soundFile$, soundExt$, ".allignment.TextGrid", 1)
-        pos_File$ = replace$(soundFile$, soundExt$, ".pos_tags.TextGrid", 1)
+        posFile$ = replace$(soundFile$, soundExt$, ".pos_tags.TextGrid", 1)
+        repFile$ = replace$(soundFile$, soundExt$, ".repetitions.TextGrid", 1)
         mergedFile$ = replace$(soundFile$, soundExt$, ".merged.TextGrid", 1) 
 
         idUhm = Read from file: outputDir$ + pathSep$ + uhmFile$
         idAllignment = Read from file: outputDir$ + pathSep$ + allignmentFile$
-        idPOS = Read from file: outputDir$ + pathSep$ + pos_File$
+        idPOS = Read from file: outputDir$ + pathSep$ + posFile$
+        idRep = Read from file: outputDir$ + pathSep$ + repFile$
 
-        selectObject: idUhm, idAllignment, idPOS
+
+        selectObject: idUhm, idAllignment, idPOS, idRep
         idMerged = Merge
         Save as text file: outputDir$ + pathSep$ + mergedFile$
         
         if (showIntermediateObjects == 0) or (showResultInPraat == 0)
-            removeObject: idUhm, idAllignment, idPOS
+            removeObject: idUhm, idAllignment, idPOS, idRep
             endif
         if showResultInPraat == 1
             idSound = Read from file: inputDir$ + pathSep$ + soundFile$
