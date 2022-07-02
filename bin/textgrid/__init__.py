@@ -46,6 +46,10 @@ class Interval(object):
                                                              self.xmin,
                                                              self.xmax)
 
+    def __str__(self):
+        '''Retruns the label of the interval'''
+        return str(self.text)
+
     def containsvowel(self):
         '''Boolean: Does the label contain a vowel?'''
         global vowels
@@ -113,6 +117,14 @@ class Tier(list):
         if self.xmax > tier.xmin:
             raise ValueError('time values do not match')
         return Tier(super().__add__(tier))
+
+    def __str__(self):
+        '''Return labels of intervals as sentence'''
+        if self.is_point_tier:
+            return " ".join([str(point.text) for point in self])
+        else:
+            return " ".join([str(interval) for interval in self])
+
 
     def merge(self, first=0, last=-1):
         '''Merge intervals Tier[first]...Tier[last].
@@ -266,7 +278,7 @@ class TextGrid(OrderedDict):
         if not isinstance(data, bytes):
             raise TypeError
         binary = b'ooBinaryFile\x08TextGrid'
-        text = ['File type = "ooTextFile"', 'Object class = "TextGrid"']
+        header = ['File type = "ooTextFile"', 'Object class = "TextGrid"']
         # Check and then discard binary header
         if data[:len(binary)] == binary:
             buff = io.BytesIO(data[len(binary):])
@@ -283,9 +295,9 @@ class TextGrid(OrderedDict):
             # Now convert to a text buffer
             buff = [s.strip() for s in data.decode(coding).split('\n')]
             # Check and then discard header
-            if buff[:len(text)] != text:
+            if buff[:len(header)] != header:
                 raise TypeError
-            buff = buff[len(text):]
+            buff = buff[len(header) + 1:]
             # If the next line starts with a number, this is a short textgrid
             if buff[0][0] in '-0123456789':
                 self._parse_short(buff)

@@ -29,6 +29,12 @@ if allignment$ == "maus"
     @maus
     endif
 
+if operatingSystem$ == "Windows" 
+    runSystem: "py -3 .\bin\pos_tagging.py -d " + outputDir$ + " -a " + allignment$
+else
+    runSystem: "pyhon3 ./bin/pos_tagging -d " + outputDir$ + " -a " + allignment$
+    endif
+
 @postprocessing
 @cleanup
 
@@ -150,12 +156,12 @@ procedure set_config
     #General:
     operatingSystem$ = "Windows"
     inputFileSpec$ = "test/*.wav"
-    transcriptionFormat$ = "txt"
+    transcriptionFormat$ = "maus"
     language$ = "English"
     outputDir$ = "output"
 
-    showResultInPraat = 0
-    showIntermediateObjects = 0
+    showResultInPraat = 1
+    showIntermediateObjects = 1
 
     #uhm-o-meter:
     preProcessing$ = "None"
@@ -201,17 +207,19 @@ procedure postprocessing
 
         uhmFile$ = replace$(soundFile$, soundExt$, ".uhm.TextGrid", 1)
         allignmentFile$ = replace$(soundFile$, soundExt$, ".allignment.TextGrid", 1)
+        pos_File$ = replace$(soundFile$, soundExt$, ".pos_tags.TextGrid", 1)
         mergedFile$ = replace$(soundFile$, soundExt$, ".merged.TextGrid", 1) 
 
         idUhm = Read from file: outputDir$ + pathSep$ + uhmFile$
         idAllignment = Read from file: outputDir$ + pathSep$ + allignmentFile$
+        idPOS = Read from file: outputDir$ + pathSep$ + pos_File$
 
-        selectObject: idUhm, idAllignment
+        selectObject: idUhm, idAllignment, idPOS
         idMerged = Merge
         Save as text file: outputDir$ + pathSep$ + mergedFile$
         
         if (showIntermediateObjects == 0) or (showResultInPraat == 0)
-            removeObject: idUhm, idAllignment
+            removeObject: idUhm, idAllignment, idPOS
             endif
         if showResultInPraat == 1
             idSound = Read from file: inputDir$ + pathSep$ + soundFile$

@@ -33,7 +33,7 @@ def parse_arguments() -> argparse.Namespace:
 
 
 def main(): 
-    args = parse_arguments()
+    args: argparse.ArgumentParser = parse_arguments()
 
     word_allignments = glob.glob(f"./{args.directory}/*.tokens.json")
     phrase_allignments = glob.glob(f"./{args.directory}/*.phrases.json")
