@@ -146,3 +146,6 @@ dmypy.json
 test/
 input/
 output/
+
+# Data downloaded by NLTK
+averaged_perceptron_tagger/
