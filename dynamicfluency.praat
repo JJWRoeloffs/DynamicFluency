@@ -59,7 +59,7 @@ procedure aeneas_windows
         Insert string: 0, base$ + " " + inputDir$ + pathSep$ + soundFile$ + " " + inputDir$ + pathSep$ + tokensFile$[file] + args$ + " " + outputDir$ + pathSep$ + outputFileTokens$
         Insert string: 0, base$ + " " + inputDir$ + pathSep$ + soundFile$ + " " + inputDir$ + pathSep$ + phrasesFile$[file] + args$ + " " + outputDir$ + pathSep$ + outputFilePhrases$ 
         endfor
-    Insert string: 0, "py -3 .\bin\aeneas_postprocess.py"
+    Insert string: 0, "py -3 .\bin\aeneas_postprocess.py -d " + outputDir$
     Save as raw text file: "dynamicfluency_aeneas.auto.cmd"
     Remove
     runSystem: "dynamicfluency_aeneas.auto.cmd"
@@ -152,6 +152,7 @@ procedure set_config
     inputFileSpec$ = "test/*.wav"
     transcriptionFormat$ = "txt"
     language$ = "English"
+    outputDir$ = "output"
 
     showResultInPraat = 0
     showIntermediateObjects = 0
@@ -162,9 +163,6 @@ procedure set_config
     minimumDipNearPeak = 2
     minimumPauseDuration = 0.3
     filledPauseThreshold = 1
-
-    #hidden settings:
-    outputDir$ = "output"
 
     removeObject: idConfig
     endproc
