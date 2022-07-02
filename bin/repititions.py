@@ -2,9 +2,12 @@
 import argparse
 
 import glob
-from typing import Generator
+import copy
 
+import nltk
 import textgrid as tg
+
+nltk.download('punkt')
 
 def find_repetitions(tier: tg.Tier, *, max_cache:int = 100) -> tg.Tier: 
     cache = []
@@ -19,6 +22,13 @@ def find_repetitions(tier: tg.Tier, *, max_cache:int = 100) -> tg.Tier:
             interval.text = str(1/cache.index(interval.text, 1))
         except ValueError:
             interval.text = str(0)
+    return tier
+
+def find_frequencies(tier: tg.Tier) -> tg.Tier:
+    fdist=nltk.FreqDist(nltk.word_tokenize(str(tier)))
+    for interval in tier:
+        if interval.text == "": continue
+        interval.text = fdist.freq(interval.text)
     return tier
 
 def parse_arguments() -> argparse.Namespace: 
@@ -36,7 +46,8 @@ def main():
 
         repetition_grid = tg.TextGrid()
         repetition_grid.xmin, repetition_grid.xmax = tagged_grid.xmin, tagged_grid.xmax
-        repetition_grid["Repetitions"] = find_repetitions(tagged_grid["POStags"], max_cache = int(args.max_read))
+        repetition_grid["Repetitions"] = find_repetitions(copy.deepcopy(tagged_grid["POStags"]), max_cache = 300)
+        repetition_grid["FreqDist"]    = find_frequencies(copy.deepcopy(tagged_grid["POStags"]))
 
         name = tagged_grid.filename.replace(".pos_tags.TextGrid", ".repetitions.TextGrid")
         repetition_grid.write(name)
