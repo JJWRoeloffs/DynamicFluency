@@ -11,7 +11,7 @@ nltk.download('punkt', 'averaged_perceptron_tagger')
 
 def parse_arguments() -> argparse.Namespace: 
     parser = argparse.ArgumentParser(description = "Creates a textgrid with a POS-tagged tier from an allignment textgrid")
-    parser.add_argument("-d", "--directory", help = "The directory the tokens and phases is expected in, and the output is saved to")
+    parser.add_argument("-d", "--directory", nargs='?', default="output", help = "The directory the tokens and phases is expected in, and the output is saved to")
     parser.add_argument("-a", "--allignment", help = "The type of allignment textgrid, either 'maus' or 'aeneas'")
     return parser.parse_args()
 
