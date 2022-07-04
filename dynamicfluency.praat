@@ -41,6 +41,12 @@ else
     runSystem: "pyhon3 ./bin/repititions.py -d " + outputDir$ + " -m " + max_repitition_read$
     endif
 
+if operatingSystem$ == "Windows" 
+    runSystem: "py -3 .\bin\word_frequencies.py -d " + outputDir$
+else
+    runSystem: "pyhon3 ./bin/word_frequencies.py -d " + outputDir$
+    endif
+
 @postprocessing
 @cleanup
 
@@ -218,20 +224,22 @@ procedure postprocessing
         allignmentFile$ = replace$(soundFile$, soundExt$, ".allignment.TextGrid", 1)
         posFile$ = replace$(soundFile$, soundExt$, ".pos_tags.TextGrid", 1)
         repFile$ = replace$(soundFile$, soundExt$, ".repetitions.TextGrid", 1)
+        freqFile$ = replace$(soundFile$, soundExt$, ".frequencies.TextGrid", 1)
         mergedFile$ = replace$(soundFile$, soundExt$, ".merged.TextGrid", 1) 
 
         idUhm = Read from file: outputDir$ + pathSep$ + uhmFile$
         idAllignment = Read from file: outputDir$ + pathSep$ + allignmentFile$
         idPOS = Read from file: outputDir$ + pathSep$ + posFile$
         idRep = Read from file: outputDir$ + pathSep$ + repFile$
+        idFreq = Read from file: outputDir$ + pathSep$ + freqFile$
 
 
-        selectObject: idUhm, idAllignment, idPOS, idRep
+        selectObject: idUhm, idAllignment, idPOS, idRep, idFreq
         idMerged = Merge
         Save as text file: outputDir$ + pathSep$ + mergedFile$
         
         if (showIntermediateObjects == 0) or (showResultInPraat == 0)
-            removeObject: idUhm, idAllignment, idPOS, idRep
+            removeObject: idUhm, idAllignment, idPOS, idRep, idFreq
             endif
         if showResultInPraat == 1
             idSound = Read from file: inputDir$ + pathSep$ + soundFile$
