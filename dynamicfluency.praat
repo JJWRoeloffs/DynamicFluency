@@ -42,9 +42,9 @@ else
     endif
 
 if operatingSystem$ == "Windows" 
-    runSystem: "py -3 .\bin\word_frequencies.py -d " + outputDir$ + " -t " + database_table$ + " -b " + database$
+    runSystem: "py -3 .\bin\word_frequencies.py -d " + outputDir$ + " -t " + database_table$ + " -b " + database$ + " -i " + to_ignore$
 else
-    runSystem: "pyhon3 ./bin/word_frequencies.py -d " + outputDir$ + " -t " + database_table$ + " -b " + database$
+    runSystem: "pyhon3 ./bin/word_frequencies.py -d " + outputDir$ + " -t " + database_table$ + " -b " + database$ + " -i " + to_ignore$
     endif
 
 @postprocessing
@@ -184,6 +184,7 @@ procedure set_config
 
     #Repititions
     max_repitition_read$ = "300"
+    to_ignore$ = "uh,uhm"
 
     #Word Frequencies
     database$ = "databases/main.db"

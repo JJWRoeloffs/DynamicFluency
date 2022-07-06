@@ -15,10 +15,16 @@ def parse_arguments() -> argparse.Namespace:
 
     parser.add_argument("-b", "--database", nargs='?', default="databases/main.db", help = "File used for the SQLite Database.")
     parser.add_argument("-d", "--directory", nargs='?', default="output", help = "The directory the pos_tags .TextGrid is expected in, and the output is saved to")
-    return parser.parse_args()
+    parser.add_argument("-i", "--to_ignore", nargs='?', help = "The words to ignore and not assign any value, seperated by commas.")
 
-def create_frequencies_textgrid(tier: tg.Tier, database_file: str, table_name: str) -> tg.TextGrid:
-    print(tier)
+    args: argparse.Namespace = parser.parse_args()
+    if args.to_ignore:
+        args.to_ignore = set(args.to_ignore.split(","))
+    else:
+        args.to_ignore = set()
+    return args
+
+def create_frequencies_textgrid(tier: tg.Tier, database_file: str, table_name: str, *, to_ignore: set) -> tg.TextGrid:
     grid = tg.TextGrid()
     grid.xmax, grid.xmin = tier.xmax, tier.xmin
 
@@ -36,21 +42,20 @@ def create_frequencies_textgrid(tier: tg.Tier, database_file: str, table_name: s
 
         # Set values from database to textgird for each word, for each tier/column.
         for i, interval in enumerate(tier):
-            print(interval)
             if interval.text == "": continue
-            lemma = interval.text.split("_")[0].lower()
-            print(lemma)
+            if interval.text in to_ignore: continue
+            
+            #Reading from the POS tags, the lemmas need to be seperated from their part of speech.
+            lemma = interval.text.split("_")[0]
             
             # Using f-strings for the table, as the buildin trows an error.
             cursor.execute(
-                f"SELECT * FROM {table_name} WHERE Lemma = (?) ;", [lemma]
+                f"SELECT DISTINCT * FROM {table_name} WHERE LOWER(Lemma) LIKE LOWER((?));", [lemma]
             )
             try:
                 data = cursor.fetchall()[0]
             except IndexError:
                 data = ["Missing"] * len(column_names)
-            print(column_names)
-            print(data)
 
             for name, value in zip(column_names, data, strict=True):
                 grid[name][i].text = value
@@ -73,7 +78,7 @@ def main():
     for file in tagged_files:
         tagged_grid = tg.TextGrid(filename = file)
 
-        frequency_grid = create_frequencies_textgrid(copy.deepcopy(tagged_grid["POStags"]), args.database, args.table_name)
+        frequency_grid = create_frequencies_textgrid(tagged_grid["POStags"], args.database, args.table_name, to_ignore = args.to_ignore)
 
         name = tagged_grid.filename.replace(".pos_tags.TextGrid", ".frequencies.TextGrid")
         frequency_grid.write(name)

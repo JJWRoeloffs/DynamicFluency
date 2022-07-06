@@ -42,6 +42,10 @@ def main():
     for file in allignment_files:
         allignment_grid = tg.TextGrid(filename = file)
 
+        # Set everything to lowercase, to make sure everything is evaluated properly later on.
+        for interval in allignment_grid[tokentier]:
+            interval.text = interval.text.lower()
+
         tokens: List[str] = nltk.word_tokenize(str(allignment_grid[tokentier]))
         tags: List[Union[str, str]] =  nltk.pos_tag(tokens)
         
