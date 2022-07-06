@@ -8,56 +8,63 @@ import copy
 import textgrid as tg
 
 def parse_arguments() -> argparse.Namespace: 
-    parser = argparse.ArgumentParser(description = "Reads word frequencies frim a SQLite3 database of SUBTLEXus")
-    parser.add_argument("-b", "--database", nargs='?', default="subtlexus/subtlexus.db", help = "File used for the SQLite Database.")
+    parser = argparse.ArgumentParser(description = "Reads word frequencies from an SQLite3 database. Assumes lemmas are in a column called \"Lemma\"")
+    requiredNamed = parser.add_argument_group('Required named arguments')
+
+    requiredNamed.add_argument("-t", "--table_name", help = "Name of the table to be read from.", required=True)
+
+    parser.add_argument("-b", "--database", nargs='?', default="databases/main.db", help = "File used for the SQLite Database.")
     parser.add_argument("-d", "--directory", nargs='?', default="output", help = "The directory the pos_tags .TextGrid is expected in, and the output is saved to")
     return parser.parse_args()
 
-# TODO: Make this function not hideous and hard-coded with the database provided
-def get_frequencies(tier: tg.Tier, database: str) -> tg.TextGrid:
+def create_frequencies_textgrid(tier: tg.Tier, database_file: str, table_name: str) -> tg.TextGrid:
+    print(tier)
+    grid = tg.TextGrid()
+    grid.xmax, grid.xmin = tier.xmax, tier.xmin
+
     try:
-        sql_database = sqlite3.connect(database)   
-        cursor = sql_database.cursor()
+        database = sqlite3.connect(database_file)   
+        cursor = database.cursor()
 
-        grid = tg.TextGrid()
-        grid.xmax, grid.xmin = tier.xmax, tier.xmin
+        # Get column names from table
+        cursor.execute("SELECT name FROM PRAGMA_TABLE_INFO(?);", [table_name])
+        column_names = [name[0] for name in cursor.fetchall()]
 
-        grid["FREQcount"] = copy.deepcopy(tier)
-        grid["CDcount"]   = copy.deepcopy(tier)
-        grid["FREQlow"]   = copy.deepcopy(tier)
-        grid["Cdlow"]     = copy.deepcopy(tier)
-        grid["SUBTLWF"]   = copy.deepcopy(tier)
-        grid["Lg10WF"]    = copy.deepcopy(tier)
-        grid["SUBTLCD"]   = copy.deepcopy(tier)
-        grid["Lg10CD"]    = copy.deepcopy(tier)
+        # Create a tier for each column
+        for name in column_names:
+            grid[name] = copy.deepcopy(tier)
 
+        # Set values from database to textgird for each word, for each tier/column.
         for i, interval in enumerate(tier):
+            print(interval)
             if interval.text == "": continue
-
+            lemma = interval.text.split("_")[0].lower()
+            print(lemma)
+            
+            # Using f-strings for the table, as the buildin trows an error.
             cursor.execute(
-                "SELECT * FROM subtlexus WHERE word = (?);", [interval.text.split("_")[0].lower()]
+                f"SELECT * FROM {table_name} WHERE Lemma = (?) ;", [lemma]
             )
             try:
-                data = cursor.fetchall()[0] 
+                data = cursor.fetchall()[0]
             except IndexError:
-                data = [""] * 9   
-            grid["FREQcount"][i].text = data[1]
-            grid["CDcount"][i].text   = data[2]
-            grid["FREQlow"][i].text   = data[3]
-            grid["Cdlow"][i].text     = data[4]
-            grid["SUBTLWF"][i].text   = data[5]
-            grid["Lg10WF"][i].text    = data[6]
-            grid["SUBTLCD"][i].text   = data[7]
-            grid["Lg10CD"][i].text    = data[8]
+                data = ["Missing"] * len(column_names)
+            print(column_names)
+            print(data)
 
+            for name, value in zip(column_names, data, strict=True):
+                grid[name][i].text = value
+
+        # Remove the lemmas from the TextGrid, as they would be superfluous; they are already in the textgird used as imput
+        grid.pop("Lemma")
         return grid
 
     except sqlite3.Error as error:
         print('SQL Error occured - ', error)
 
     finally:
-        if sql_database:
-            sql_database.close()
+        if database:
+            database.close()
 
 def main(): 
     args: argparse.Namespace = parse_arguments()
@@ -66,7 +73,7 @@ def main():
     for file in tagged_files:
         tagged_grid = tg.TextGrid(filename = file)
 
-        frequency_grid = get_frequencies(copy.deepcopy(tagged_grid["POStags"]), args.database)
+        frequency_grid = create_frequencies_textgrid(copy.deepcopy(tagged_grid["POStags"]), args.database, args.table_name)
 
         name = tagged_grid.filename.replace(".pos_tags.TextGrid", ".frequencies.TextGrid")
         frequency_grid.write(name)

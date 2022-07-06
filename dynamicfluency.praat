@@ -42,9 +42,9 @@ else
     endif
 
 if operatingSystem$ == "Windows" 
-    runSystem: "py -3 .\bin\word_frequencies.py -d " + outputDir$
+    runSystem: "py -3 .\bin\word_frequencies.py -d " + outputDir$ + " -t " + database_table$ + " -b " + database$
 else
-    runSystem: "pyhon3 ./bin/word_frequencies.py -d " + outputDir$
+    runSystem: "pyhon3 ./bin/word_frequencies.py -d " + outputDir$ + " -t " + database_table$ + " -b " + database$
     endif
 
 @postprocessing
@@ -185,6 +185,10 @@ procedure set_config
     #Repititions
     max_repitition_read$ = "300"
 
+    #Word Frequencies
+    database$ = "databases/main.db"
+    database_table$ = "Default"
+
     removeObject: idConfig
     endproc
 
@@ -209,6 +213,10 @@ procedure process_arguments
     else
         allignment$ = "maus"
         endif
+
+    if (language$ == "English" and database_table$ == "Default")
+        database_table$ = "subtlexus"
+
     endproc
 
 # Takes all the individually generated textgrids from the different tools, and merges them together.
