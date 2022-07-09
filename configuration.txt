@@ -1,11 +1,23 @@
 DynamicFluency configuration file
 
-Global Settings
-OS = Windows
+General Settings
+OS=Windows
+Input File Spec=input/*.wav
+Output Dir=output
+Language=English
+Show Intermediate Objects=1
+Show Results in Praat=1
+Transcription Format=maus
 
 Uhm-o-meter Settings
-Pre-processing = None
-Silence Treshhold = -25
-Minimum dip near peak = 2
-Minimum pause duration = 0.3
-Filled pause threshold = 1
+Pre-processing=None
+Silence Treshhold=-25
+Minimum dip near peak=2
+Minimum pause duration=0.3
+Filled pause threshold=1
+
+Repititions and Word Frequencies
+To Ignore=uh,uhm
+Max Repitition Read=300
+Database File=databases/main.db
+Database Table=Default
