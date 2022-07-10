@@ -28,9 +28,9 @@ beginPause: "General Settings"
     boolean: "Show_Intermediate_Objects", 1
     boolean: "Show_Results_In_Praat", 1
     comment: "________________________________________________________________________________"
-    comment: "If aenas is not configured, you can use a .TextGrid from WebMAUS for allignment and transcription"
-    comment: "if you are using this, specify maus as the transcription format."
-    comment: "else, specify the file format of your transcription file."
+    comment: "If aenas is configured, you can use a .TextGrid or .txt with the same name for the transcription"
+    comment: "if you are using this, specify the transcription format."
+    comment: "else, keep this setting at maus."
     optionMenu: "Transcription_Format", 1
         option: "maus"
         option: "TextGrid"
