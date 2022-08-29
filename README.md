@@ -10,15 +10,15 @@ DynamicFluency, in its core, is a few praat scripts that are interfacing some co
 
 If you wish to install DynamicFluency, you can either **clone the git repo**, or download the system from the **releases tab**. In both cases, all python dependencies still need to be installed with the following command in your terminal of choise:
 ```
-pip install nltk, pandas
+pip3 install nltk pandas
 ```
-To be able to run this command, you need to have installed python with pip enabled (which it is by default.) If you are running Windows, one more python dependency is the py launcher (which is also installed with python by default.)
+To be able to run this command on windows, you need to have install python with pip enabled, which is on by default. Aditionally, you should have the windows-py launcher installed, which also comes with python by default. To be able to run this command on linux you need to install pip (the package is called `python3-pip` for apt and pacman)
 
-If you have cloned the git repo, you can then initialise the dictionaries  to be used for global word frequency, like [SUBTLEXus](https://www.ugent.be/pp/experimentele-psychologie/en/research/documents/subtlexus) or [SUBTLEX-UX](http://crr.ugent.be/archives/1423), with the included `add_frequency_dictionairy.py` script from `resources`. To do this, make sure the column in which the lemma are in the csv-like file is called `Lemma`. Additionally, it should be noted that NLTK will automatically download data the first time DynamicFluency is run.
+If you have cloned the git repo, (skip this paragraph if you installed from archive) you have to initialise the dictionaries to be used for global word frequency, like [SUBTLEXus](https://www.ugent.be/pp/experimentele-psychologie/en/research/documents/subtlexus) or [SUBTLEX-UX](http://crr.ugent.be/archives/1423), with the included `add_frequency_dictionairy.py` script from `resources`. To do this, make sure the column in which the lemma are in the csv-like file is called `Lemma`. Additionally, it should be noted that NLTK will automatically download data the first time DynamicFluency is run.
 
 If you have downloaded the achieve it should first be moved to wherever you want it. Once extracted, it will contain both the code and the directories for input and output of TextGrids. Decompress it with your favourite decompressor; the windows build-in is available in the right-click menu of the file explorer, and is called unzip.
 
-The system is also able to interface with [aeneas](https://www.readbeyond.it/aeneas/). However, the installation if this is tricky on Windows, as it requires compiling C code with pip. (It has terrible output quality if you disable `CEW`.) Follow the installation instructions on their website if you want to use it. If you are running windows, DynamicFluency presumes aeneas is installed on python 2.7, as that appears to be more stable. 
+The system is also able to interface with [aeneas](https://www.readbeyond.it/aeneas/). However, the installation if this is tricky on Windows, as it requires compiling C code with pip. (It has terrible output quality if you disable `CEW`.) Follow the installation instructions on their website if you want to use it. If you are running windows, DynamicFluency presumes aeneas is installed on python 2.7, as that appears to be more stable. On linux, aeneas can be installed with pip3 (for python3) if you have `gcc` installed (package called `gcc` on apt and pacman), and can simply be installed following the install instructions on aeneas' website.
 
 ---
 
