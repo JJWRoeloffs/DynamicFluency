@@ -12,7 +12,7 @@ If you wish to install DynamicFluency, you can either **clone the git repo**, or
 ```
 pip3 install nltk pandas
 ```
-To be able to run this command on windows, you need to have install python with pip enabled, which is on by default. Aditionally, you should have the windows-py launcher installed, which also comes with python by default. To be able to run this command on linux you need to install pip (the package is called `python3-pip` for apt and pacman)
+To be able to run this command on Windows, you need to have install python with pip enabled, which is on by default. Aditionally, you should have the windows-py launcher installed, which also comes with python by default. To be able to run this command on linux you need to install pip (the package is called `python3-pip` for apt and pacman)
 
 If you have cloned the git repo, (skip this paragraph if you installed from archive) you have to initialise the dictionaries to be used for global word frequency, like [SUBTLEXus](https://www.ugent.be/pp/experimentele-psychologie/en/research/documents/subtlexus) or [SUBTLEX-UX](http://crr.ugent.be/archives/1423), with the included `add_frequency_dictionairy.py` script from `resources`. To do this, make sure the column in which the lemma are in the csv-like file is called `Lemma`. Additionally, it should be noted that NLTK will automatically download data the first time DynamicFluency is run.
 
@@ -36,6 +36,8 @@ The output will be in a directory separate from the input. This output directory
 Once you have this set up, the wizard will run you trough the settings. In most cases, the default settings should be fine.
 
 For each input file pair, the system will output a lot of different TextGrids, these are the outputs of the individual components. One of them ends in `.merged.TextGrid`. This is the file that contains all the output. 
+
+If, at any point during operation, you notice that praat stops its operation without giving any sign of error, this is what happens if one of the python scripts failed (There is no way to detect a python script failing while interfacing it with praat as far as I am aware,) therefore, if this happens, you should debug the python scripts from the commandline directly. One thing here that is known to cause issues is NLTK, which sometimes fails to register the needed data, or fails to download it. Untill this is fixed, it might be needed to run a seperate python script that downloads the needed libraries seperately. This script can be found under resources, and is called `download_nltk_requirements.py`.
 
 ### Configuration wizard
 Even if you run the main system, settings are read and written to and from a settings file. This is to make runs reproduceable, and to give the ability to save setting configurations. If you want to create a settings file without running the system, you can run `configurationwizard.praat`.

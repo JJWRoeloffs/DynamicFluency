@@ -7,7 +7,8 @@ from typing import Union, List
 import nltk
 import textgrid as tg
 
-nltk.download('punkt', 'averaged_perceptron_tagger')
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
 
 def parse_arguments() -> argparse.Namespace: 
     parser = argparse.ArgumentParser(description = "Creates a textgrid with a POS-tagged tier from an allignment textgrid")
@@ -29,13 +30,17 @@ def replace_labels(tier: tg.Tier, tags: List[Union[str, str]]) -> tg.Tier:
             tags.pop(0)
         interval.text = label.strip()
     return tier
-            
+
 
 def main(): 
     args: argparse.Namespace = parse_arguments()
 
-    if args.allignment == "maus": tokentier = "ORT-MAU"
-    if args.allignment == "aeneas": tokentier = "Words"
+    if args.allignment == "maus": 
+        tokentier = "ORT-MAU"
+    elif args.allignment == "aeneas": 
+        tokentier = "Words"
+    else:
+        raise ValueError("Allignment type not recognised")
 
     allignment_files = glob.glob(f"./{args.directory}/*.allignment.TextGrid")
 
@@ -48,7 +53,7 @@ def main():
 
         tokens: List[str] = nltk.word_tokenize(str(allignment_grid[tokentier]))
         tags: List[Union[str, str]] =  nltk.pos_tag(tokens)
-        
+
         tagged = tg.TextGrid()
         tagged.xmin, tagged.xmax = allignment_grid.xmin, allignment_grid.xmax
         tagged["POStags"]: tg.Tier = replace_labels(allignment_grid[tokentier], tags)
