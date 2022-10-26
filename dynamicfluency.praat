@@ -19,7 +19,7 @@ form Find Speaking Fluency
 @set_config
 @process_arguments
 
-runScript: "bin" + pathSep$ + "uhm-o-meter" + pathSep$ + "syllablenuclei.praat", operatingSystem$, inputFileSpec$, preProcessing$, silenceTreshhold, minimumDipNearPeak, minimumPauseDuration, language$, filledPauseThreshold 
+runScript: "bin" + pathSep$ + "uhm-o-meter" + pathSep$ + "SyllableNuclei.praat", operatingSystem$, inputFileSpec$, preProcessing$, silenceTreshhold, minimumDipNearPeak, minimumPauseDuration, language$, filledPauseThreshold 
 @uhm_postprocessing
 
 if allignment$ = "aeneas"
@@ -38,19 +38,19 @@ if allignment$ == "maus"
 if operatingSystem$ == "Windows" 
     runSystem: "py -3 .\bin\pos_tagging.py -d " + outputDir$ + " -a " + allignment$
 else
-    runSystem: "pyhon3 ./bin/pos_tagging -d " + outputDir$ + " -a " + allignment$
+    runSystem: "python3 ./bin/pos_tagging.py -d " + outputDir$ + " -a " + allignment$
     endif
 
 if operatingSystem$ == "Windows" 
     runSystem: "py -3 .\bin\repititions.py -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
 else
-    runSystem: "pyhon3 ./bin/repititions.py -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
+    runSystem: "python3 ./bin/repititions.py -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
     endif
  
 if operatingSystem$ == "Windows" 
     runSystem: "py -3 .\bin\word_frequencies.py -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$
 else
-    runSystem: "pyhon3 ./bin/word_frequencies.py -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$
+    runSystem: "python3 ./bin/word_frequencies.py -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$
     endif
 
 @postprocessing
@@ -140,7 +140,7 @@ procedure maus
         if operatingSystem$ == "Windows"
             runSystem: "copy /-Y " + inputDir$ + pathSep$ + mausFile$ + " " + outputDir$ + pathSep$ + allignmentFile$
         else
-            runSystem: "mv " + inputDir$ + pathSep$ + mausFile$ + " " + outputDir$ + pathSep$ + allignmentFile$
+            runSystem: "cp " + inputDir$ + pathSep$ + mausFile$ + " " + outputDir$ + pathSep$ + allignmentFile$
             endif
         endfor
     endproc
@@ -154,7 +154,11 @@ procedure uhm_postprocessing
         soundExt$ = right$(soundFile$, length(soundFile$)-rindex(soundFile$, ".")+1)
 
         uhmFile$ = replace$(soundFile$, soundExt$, ".uhm.TextGrid", 1)
-        runSystem: "move /-Y " + inputDir$ + pathSep$ + uhmFile$ + " " + outputDir$ + pathSep$  + uhmFile$
+        if operatingSystem$ == "Windows"
+            runSystem: "move /-Y " + inputDir$ + pathSep$ + uhmFile$ + " " + outputDir$ + pathSep$  + uhmFile$
+        else
+            runSystem: "mv " + inputDir$ + pathSep$ + uhmFile$ + " " + outputDir$ + pathSep$  + uhmFile$
+            endif
         endfor
     endproc
 

@@ -57,7 +57,7 @@ def create_frequencies_textgrid(tier: tg.Tier, database_file: str, table_name: s
             except IndexError:
                 data = ["Missing"] * len(column_names)
 
-            for name, value in zip(column_names, data, strict=True):
+            for name, value in zip(column_names, data):
                 grid[name][i].text = value
 
         # Remove the lemmas from the TextGrid, as they would be superfluous; they are already in the textgird used as imput
