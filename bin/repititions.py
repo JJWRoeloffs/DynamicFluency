@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
-import argparse
+from __future__ import annotations
 
 import glob
-import copy
+import argparse
+from typing import Set
 
 import nltk
-import textgrid as tg
+from praatio import textgrid as tg
+from praatio.data_classes.textgrid import Textgrid
+from praatio.data_classes.textgrid_tier import TextgridTier
+
+from helpers import set_label, entrylist_labels_to_string
 
 nltk.download('punkt')
 
@@ -22,44 +27,79 @@ def parse_arguments() -> argparse.Namespace:
         args.to_ignore = set()
     return args
 
-def find_repetitions(tier: tg.Tier, *, max_cache:int = 100, to_ignore: set) -> tg.Tier: 
+def make_repetitions_tier(
+        pos_tier: TextgridTier, 
+        *,
+        max_cache: int = 100,
+        to_ignore: Set = set(),
+        name: str = "Repetitions"
+    ) -> TextgridTier:
+
     cache = []
+    repetitions_list = []
 
-    for interval in tier:
-        if interval.text == "": continue
-        if interval.text in to_ignore: continue
+    for entry in pos_tier.entryList:
+        if (not entry.label) or (entry.label in to_ignore):
+            repetitions_list.append(entry)
+            continue
 
-        cache.insert(0, interval.text)
-        if len(cache) > max_cache: cache.pop()
-
-        try: 
-            interval.text = str(1/cache.index(interval.text, 1))
+        cache.insert(0, entry.label)
+        if len(cache) > max_cache: 
+            cache.pop()
+        
+        try:
+            repetitions = str(1/cache.index(entry.label, 1))
         except ValueError:
-            interval.text = str(0)
-    return tier
+            repetitions = "0"
+    
+        repetitions_list.append(set_label(entry, repetitions))
 
-def find_frequencies(tier: tg.Tier, *, to_ignore: set) -> tg.Tier:
-    fdist=nltk.FreqDist(nltk.word_tokenize(str(tier)))
-    for interval in tier:
-        if interval.text == "": continue
-        if interval.text in to_ignore: continue
-        interval.text = fdist.freq(interval.text)
-    return tier
+    return pos_tier.new(name=name, entryList=repetitions_list)
+
+def make_freqdist_tier(
+        pos_tier: TextgridTier, 
+        *,
+        to_ignore: Set = set(),
+        name: str = "FreqDist"
+    ) -> TextgridTier:
+
+    text = entrylist_labels_to_string(pos_tier.entryList)
+    fdist=nltk.FreqDist(nltk.word_tokenize(text))
+    freqdist_list = []
+
+    for entry in pos_tier.entryList:
+        if (not entry.label) or (entry.label in to_ignore):
+            freqdist_list.append(entry)
+            continue
+
+        frequency = str(fdist.freq(entry.label))
+        freqdist_list.append(set_label(entry, frequency))
+    
+    return pos_tier.new(name=name, entryList=freqdist_list)
 
 def main(): 
     args: argparse.Namespace = parse_arguments()
 
     tagged_files = glob.glob(f"./{args.directory}/*.pos_tags.TextGrid")
     for file in tagged_files:
-        tagged_grid = tg.TextGrid(filename = file)
+        tagged_grid = tg.openTextgrid(file, includeEmptyIntervals=True)
 
-        repetition_grid = tg.TextGrid()
-        repetition_grid.xmin, repetition_grid.xmax = tagged_grid.xmin, tagged_grid.xmax
-        repetition_grid["Repetitions"] = find_repetitions(copy.deepcopy(tagged_grid["POStags"]), max_cache = args.max_read, to_ignore=args.to_ignore)
-        repetition_grid["FreqDist"]    = find_frequencies(copy.deepcopy(tagged_grid["POStags"]), to_ignore=args.to_ignore)
+        repetition_tier = make_repetitions_tier(
+            pos_tier = tagged_grid.tierDict["POStags"],
+            max_cache = args.max_read,
+            to_ignore = args.to_ignore
+        )
+        freqdist_tier = make_freqdist_tier(
+            pos_tier = tagged_grid.tierDict["POStags"],
+            to_ignore = args.to_ignore
+        )
 
-        name = tagged_grid.filename.replace(".pos_tags.TextGrid", ".repetitions.TextGrid")
-        repetition_grid.write(name)
+        repetition_grid = Textgrid()
+        repetition_grid.addTier(repetition_tier)
+        repetition_grid.addTier(freqdist_tier)
+
+        name = file.replace(".pos_tags.TextGrid", ".repetitions.TextGrid")
+        repetition_grid.save(name, format="long_textgrid", includeBlankSpaces=True)
 
 if __name__ == "__main__":
     main()
