@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 import argparse
 
-import sqlite3
 import glob
-import copy
+import sqlite3
+from typing import Set, List
 
-import textgrid as tg
+from praatio import textgrid as tg
+from praatio.data_classes.textgrid import Textgrid
+from praatio.data_classes.textgrid_tier import TextgridTier
+
+from helpers import pos_tier_to_lemma_tier, set_all_tiers_static, set_all_tiers_from_dict
 
 def parse_arguments() -> argparse.Namespace: 
     parser = argparse.ArgumentParser(description = "Reads word frequencies from an SQLite3 database. Assumes lemmas are in a column called \"Lemma\"")
@@ -24,64 +28,106 @@ def parse_arguments() -> argparse.Namespace:
         args.to_ignore = set()
     return args
 
-def create_frequencies_textgrid(tier: tg.Tier, database_file: str, table_name: str, *, to_ignore: set) -> tg.TextGrid:
-    grid = tg.TextGrid()
-    grid.xmax, grid.xmin = tier.xmax, tier.xmin
+def connect_to_database(database_file: str) -> sqlite3.Cursor:
+    """Connects to the specifed sqlite3 database with a row-based cursor."""
+    database = sqlite3.connect(database_file)
+    database.row_factory = sqlite3.Row
+    return database.cursor()
+
+def get_column_names(cursor: sqlite3.Cursor, *, table_name: str) -> List[str]:
+    """Returns all the column names from the specified table"""
+    cursor.execute("SELECT name FROM PRAGMA_TABLE_INFO(?);", [table_name])
+    return [name[0] for name in cursor.fetchall()]
+
+def make_empty_frequency_grid(
+        *,
+        cursor: sqlite3.Cursor,
+        table_name: str,
+        base_tier: TextgridTier
+    ) -> Textgrid:
+    """Makes an "empty" frequency grid.
+    This is a grid that has all the tiers initialised according to the column names of the databse,
+    but does not have any values in those tiers, all of them being copies from the base."""
+    frequency_grid = Textgrid()
+    for name in get_column_names(cursor, table_name=table_name):
+        tier = base_tier.new(name=name)
+        frequency_grid.addTier(tier)
+    return frequency_grid
+
+def set_labels_from_db(
+        *,
+        cursor: sqlite3.Cursor,
+        grid: Textgrid,
+        table_name: str,
+        lemma: str,
+        index: int
+    ) -> None:
+    """Sets the tiers of a textgrid with one tier for every databse column to their respecive entries at an index"""
+
+    cursor.execute(
+        f"SELECT DISTINCT * FROM {table_name} WHERE LOWER(Lemma) LIKE LOWER((?));", [lemma]
+    )
 
     try:
-        database = sqlite3.connect(database_file)   
-        cursor = database.cursor()
+        row = cursor.fetchall()[0]
+    except IndexError:
+        set_all_tiers_static(grid, item="MISSING", index=index)
+    else:
+        set_all_tiers_from_dict(grid, items=row, index=index)
 
-        # Get column names from table
-        cursor.execute("SELECT name FROM PRAGMA_TABLE_INFO(?);", [table_name])
-        column_names = [name[0] for name in cursor.fetchall()]
+def create_frequency_grid(
+        lemma_tier: TextgridTier,
+        *,
+        cursor: sqlite3.Cursor,
+        table_name: str,
+        to_ignore: Set
+    ) -> Textgrid:
+    """Create frequency grid from database connection"""
 
-        # Create a tier for each column
-        for name in column_names:
-            grid[name] = copy.deepcopy(tier)
+    frequency_grid = make_empty_frequency_grid(
+        cursor = cursor,
+        table_name = table_name,
+        base_tier = lemma_tier
+    )
 
-        # Set values from database to textgird for each word, for each tier/column.
-        for i, interval in enumerate(tier):
-            if interval.text == "": continue
-            if interval.text in to_ignore: continue
-            
-            #Reading from the POS tags, the lemmas need to be seperated from their part of speech.
-            lemma = interval.text.split("_")[0]
-            
-            # Using f-strings for the table, as the buildin trows an error.
-            cursor.execute(
-                f"SELECT DISTINCT * FROM {table_name} WHERE LOWER(Lemma) LIKE LOWER((?));", [lemma]
+    for i, entry in enumerate(lemma_tier.entryList):
+        if (not entry.label) or (entry.label in to_ignore):
+            set_all_tiers_static(frequency_grid, item="", index=i)
+        else:
+            set_labels_from_db(
+                cursor = cursor,
+                grid = frequency_grid,
+                table_name = table_name,
+                lemma = entry.label,
+                index = i
             )
-            try:
-                data = cursor.fetchall()[0]
-            except IndexError:
-                data = ["Missing"] * len(column_names)
 
-            for name, value in zip(column_names, data):
-                grid[name][i].text = value
+    return frequency_grid
 
-        # Remove the lemmas from the TextGrid, as they would be superfluous; they are already in the textgird used as imput
-        grid.pop("Lemma")
-        return grid
-
-    except sqlite3.Error as error:
-        print('SQL Error occured - ', error)
-
-    finally:
-        if database:
-            database.close()
 
 def main(): 
     args: argparse.Namespace = parse_arguments()
 
     tagged_files = glob.glob(f"./{args.directory}/*.pos_tags.TextGrid")
     for file in tagged_files:
-        tagged_grid = tg.TextGrid(filename = file)
+        tagged_grid = tg.openTextgrid(file, includeEmptyIntervals=True)
+        lemma_tier = pos_tier_to_lemma_tier(tagged_grid.tierDict["POStags"])
 
-        frequency_grid = create_frequencies_textgrid(tagged_grid["POStags"], args.database, args.table_name, to_ignore = args.to_ignore)
+        try:
+            cursor = connect_to_database(args.database)
+            frequency_grid = create_frequency_grid(
+                lemma_tier   = lemma_tier,
+                cursor = cursor,
+                table_name = args.table_name,
+                to_ignore  = args.to_ignore
+            )
+        finally:
+            cursor.connection.close()
+        
+        frequency_grid.removeTier("Lemma")
 
-        name = tagged_grid.filename.replace(".pos_tags.TextGrid", ".frequencies.TextGrid")
-        frequency_grid.write(name)
+        name = file.replace(".pos_tags.TextGrid", ".frequencies.TextGrid")
+        frequency_grid.save(name, format="long_textgrid", includeBlankSpaces=True)
 
 if __name__ == "__main__":
     main()
