@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
-import argparse
+from __future__ import annotations
 
 import glob
-from typing import Union, List
+import argparse
+from collections import namedtuple
+from typing import List, Union
 
 import nltk
-import textgrid as tg
+from praatio import textgrid as tg
+from praatio.data_classes.textgrid import Textgrid
+from praatio.data_classes.textgrid_tier import TextgridTier
+
+from helpers import replace_label, entrylist_labels_to_string, set_label
 
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
@@ -16,51 +22,68 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("-a", "--allignment", help = "The type of allignment textgrid, either 'maus' or 'aeneas'")
     return parser.parse_args()
 
+def make_lowecase_entrylist(entryList: List[namedtuple]):
+    return [replace_label(entry, lambda x: x.lower()) for entry in entryList]
 
-# Jankyness needed because the NLTK tokenise split sometimes splits words into smaller sub-sections, and pauses are empty intervals
-def replace_labels(tier: tg.Tier, tags: List[Union[str, str]]) -> tg.Tier:
-    for interval in tier:
-        if not interval.text: continue
-        
+def generate_tags_from_entrylist(
+    entryList: List[namedtuple]
+    ) -> List[Union[str, str]]:
+
+    text = entrylist_labels_to_string(entryList)
+    tokens: List[str] = nltk.word_tokenize(text)
+    return nltk.pos_tag(tokens)
+
+# Jankyness needed because the NLTK tokenise split sometimes splits words into smaller sub-sections
+def allign_tags(
+        tags: List[Union[str, str]],
+        entryList: List[namedtuple] 
+    ) -> List[namedtuple]:
+    """Make an alligned entrylist out of NLTK generated pos_tags and the entryList those were generated from."""
+
+    new_entryList = []
+    for entry in entryList:
+        if not entry.label: continue
+
         word = ""
-        while interval.text != word:
-            label = ""
+        label = ""
+        while entry.label != word:
             word += tags[0][0]
             label = " ".join([label, "_".join(tags[0])])
             tags.pop(0)
-        interval.text = label.strip()
-    return tier
-            
 
-def main(): 
+        new_entryList.append(set_label(entry, label.strip()))
+    return new_entryList
+
+def make_pos_tier(words_tier: TextgridTier, *, name: str = "POStags") -> TextgridTier:
+    """Makes a POS tagged tier from a textgrid tier with alligned words"""
+    lowercase_entryList = make_lowecase_entrylist(words_tier.entryList)
+    
+    tags = generate_tags_from_entrylist(lowercase_entryList)
+    tag_entryList = allign_tags(tags, lowercase_entryList)
+
+    return words_tier.new(name = name, entryList = tag_entryList)
+
+def main():
     args: argparse.Namespace = parse_arguments()
 
     if args.allignment == "maus": 
-        tokentier = "ORT-MAU"
+        tokentier_name = "ORT-MAU"
     elif args.allignment == "aeneas":
-        tokentier = "Words"
+        tokentier_name = "Words"
     else:
         raise ValueError(f"Unknown allignment type found: {args.allignment}")
 
     allignment_files = glob.glob(f"./{args.directory}/*.allignment.TextGrid")
 
     for file in allignment_files:
-        allignment_grid = tg.TextGrid(filename = file)
+        allignment_grid = tg.openTextgrid(file, includeEmptyIntervals=True)
 
-        # Set everything to lowercase, to make sure everything is evaluated properly later on.
-        for interval in allignment_grid[tokentier]:
-            interval.text = interval.text.lower()
+        tagged_tier = make_pos_tier(allignment_grid.tierDict[tokentier_name])
 
-        tokens: List[str] = nltk.word_tokenize(str(allignment_grid[tokentier]))
-        tags: List[Union[str, str]] =  nltk.pos_tag(tokens)
-        
-        tagged = tg.TextGrid()
-        tagged.xmin, tagged.xmax = allignment_grid.xmin, allignment_grid.xmax
-        tagged["POStags"]: tg.Tier = replace_labels(allignment_grid[tokentier], tags)
-
-        name = allignment_grid.filename.replace(".allignment.TextGrid", ".pos_tags.TextGrid")
-        tagged.write(name)
-
+        tag_grid = Textgrid()
+        tag_grid.addTier(tagged_tier)
+        name = file.replace(".allignment.TextGrid", ".pos_tags.TextGrid")
+        tag_grid.save(name, format="long_textgrid", includeBlankSpaces=True)
 
 if __name__ == "__main__":
     main()
