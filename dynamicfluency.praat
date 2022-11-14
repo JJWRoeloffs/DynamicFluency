@@ -19,7 +19,7 @@ form Find Speaking Fluency
 @set_config
 @process_arguments
 
-runScript: "bin" + pathSep$ + "uhm-o-meter" + pathSep$ + "SyllableNuclei.praat", operatingSystem$, inputFileSpec$, preProcessing$, silenceTreshhold, minimumDipNearPeak, minimumPauseDuration, language$, filledPauseThreshold 
+runScript: "scripts" + pathSep$ + "uhm-o-meter" + pathSep$ + "SyllableNuclei.praat", operatingSystem$, inputFileSpec$, preProcessing$, silenceTreshhold, minimumDipNearPeak, minimumPauseDuration, language$, filledPauseThreshold 
 @uhm_postprocessing
 
 if allignment$ = "aeneas"
@@ -36,21 +36,21 @@ if allignment$ == "maus"
     endif
 
 if operatingSystem$ == "Windows" 
-    runSystem: "py -3 .\bin\pos_tagging.py -d " + outputDir$ + " -a " + allignment$
+    runSystem: "py -3 -m dynamicfluency.scripts.make_postagged_grids_from_alligned_grids -d " + outputDir$ + " -a " + allignment$
 else
-    runSystem: "python3 ./bin/pos_tagging.py -d " + outputDir$ + " -a " + allignment$
+    runSystem: "python3 -m dynamicfluency.scripts.make_postagged_grids_from_alligned_grids -d " + outputDir$ + " -a " + allignment$
     endif
 
 if operatingSystem$ == "Windows" 
-    runSystem: "py -3 .\bin\repititions.py -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
+    runSystem: "py -3 -m dynamicfluency.scripts.make_repititionstagged_grids_from_postagged_grids -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
 else
-    runSystem: "python3 ./bin/repititions.py -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
+    runSystem: "python3 -m dynamicfluency.scripts.make_repititionstagged_grids_from_postagged_grids -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
     endif
  
 if operatingSystem$ == "Windows" 
-    runSystem: "py -3 .\bin\word_frequencies.py -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$
+    runSystem: "py -3 -m dynamicfluency.scripts.make_frequencytagged_girds_from_postagged_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$
 else
-    runSystem: "python3 ./bin/word_frequencies.py -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$
+    runSystem: "python3 -m dynamicfluency.scripts.make_frequencytagged_girds_from_postagged_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$
     endif
 
 @postprocessing
@@ -83,7 +83,7 @@ procedure aeneas_windows
         Insert string: 0, base$ + " " + inputDir$ + pathSep$ + soundFile$ + " " + inputDir$ + pathSep$ + tokensFile$[file] + args$ + " " + outputDir$ + pathSep$ + outputFileTokens$
         Insert string: 0, base$ + " " + inputDir$ + pathSep$ + soundFile$ + " " + inputDir$ + pathSep$ + phrasesFile$[file] + args$ + " " + outputDir$ + pathSep$ + outputFilePhrases$ 
         endfor
-    Insert string: 0, "py -3 .\bin\aeneas_postprocess.py -d " + outputDir$
+    Insert string: 0, "py -3 -m dynamicfluency.scripts.convert_aeneas_to_textgrids -d " + outputDir$
     Save as raw text file: "dynamicfluency_aeneas.auto.cmd"
     Remove
     runSystem: "dynamicfluency_aeneas.auto.cmd"
