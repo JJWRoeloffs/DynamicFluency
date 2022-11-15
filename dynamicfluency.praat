@@ -42,9 +42,9 @@ else
     endif
 
 if operatingSystem$ == "Windows" 
-    runSystem: "py -3 -m dynamicfluency.scripts.make_repititionstagged_grids_from_postagged_grids -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
+    runSystem: "py -3 -m dynamicfluency.scripts.make_repetitionstagged_grids_from_postagged_grids -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
 else
-    runSystem: "python3 -m dynamicfluency.scripts.make_repititionstagged_grids_from_postagged_grids -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
+    runSystem: "python3 -m dynamicfluency.scripts.make_repetitionstagged_grids_from_postagged_grids -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
     endif
  
 if operatingSystem$ == "Windows" 
