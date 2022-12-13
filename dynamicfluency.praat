@@ -48,9 +48,9 @@ else
     endif
  
 if operatingSystem$ == "Windows" 
-    runSystem: "py -3 -m dynamicfluency.scripts.make_frequencytagged_girds_from_postagged_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$
+    runSystem: "py -3 -m dynamicfluency.scripts.make_frequencytagged_girds_from_postagged_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$ + " -a " + allignment$
 else
-    runSystem: "python3 -m dynamicfluency.scripts.make_frequencytagged_girds_from_postagged_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$
+    runSystem: "python3 -m dynamicfluency.scripts.make_frequencytagged_girds_from_postagged_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$ + " -a " + allignment$
     endif
 
 @postprocessing
