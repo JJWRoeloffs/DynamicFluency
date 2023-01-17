@@ -4,24 +4,20 @@ form Textgrid Convolution
     comment presumes the textgrid is selected.  
     real steps_per_second 5
     real window_length_sec 5
-    optionmenu algorithm 1
+    optionmenu kernel 1
         option moving_average
 #       option gaussian
     endform
 
-writeInfoLine: "Starting"
-
-idTextGrid = selected ("TextGrid")
-name$      = selected$("TextGrid")
 nrTiers    = Get number of tiers
 isInterval = Is interval tier: 1
 
 if nrTiers != 1
-    exitScript: "Can only use dynamicity.praat on a TextGrid with only one Interval Tier"
+    exitScript: "Can only use dynamicity.praat on a TextGrid with exactly one Interval Tier"
     endif
 
 if isInterval != 1
-    exitScript: "Can only use dynamicity.praat on a TextGrid with only one Interval Tier"
+    exitScript: "Can only use dynamicity.praat on a TextGrid with exactly one Interval Tier"
     endif
 
 nrIntervals = Get number of intervals: 1
@@ -80,7 +76,8 @@ for i to nrSteps
     endfor
 
 # Write to TextGrid
-Insert interval tier: 2, "Dynamicity"
+tierName$ = Get tier name: 1
+Insert interval tier: 2, tierName$ + "Dynamicity"
 
 movingBoundary = window_length_sec/2
 Insert boundary: 2, movingBoundary

@@ -339,6 +339,32 @@ procedure settings_error_earlier
             endif
     endproc
 
+procedure dynamicity 
+    # This hard-coding the relevant tiers.
+    # Requires idMerged to be set.
+
+    for tier from 8 to 17
+        selectObject: idMerged
+        idTier[tier] = Extract one tier: tier
+        runScript: "scripts" + pathSep$ + "dynamicity.praat", 5, 5, "moving_average"
+        Remove tier: 1
+        endfor
+    
+    selectObject: idTier[8]
+    for tier from 8+1 to 17
+        plusObject: idTier[tier]
+        endfor
+    Merge
+
+    selectObject: idTier[8]
+    for tier from 8+1 to 17
+        plusObject: idTier[tier]
+        endfor
+    Remove
+
+endproc
+
+
 # Takes all the individually generated textgrids from the different tools, and merges them together.
 # Also loads the files into the praat gui if the user asked for this.
 procedure postprocessing
@@ -365,6 +391,8 @@ procedure postprocessing
         selectObject: idUhm, idAllignment, idPOS, idRep, idFreq
         idMerged = Merge
         Save as text file: outputDir$ + pathSep$ + mergedFile$
+
+        @dynamicity
         
         if (showIntermediateObjects == 0) or (showResultInPraat == 0)
             removeObject: idUhm, idAllignment, idPOS, idRep, idFreq
