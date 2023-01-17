@@ -79,4 +79,13 @@ for i to nrSteps
     result#[i] = movingSum/amountSummed
     endfor
 
-appendInfoLine: result#
+# Write to TextGrid
+Insert interval tier: 2, "Dynamicity"
+
+movingBoundary = window_length_sec/2
+Insert boundary: 2, movingBoundary
+for i to nrSteps
+    movingBoundary+= 1/steps_per_second
+    Insert boundary: 2, movingBoundary
+    Set interval text: 2, i+1, string$(result#[i])
+    endfor
