@@ -36,19 +36,19 @@ if allignment$ == "maus"
     endif
 
 if operatingSystem$ == "Windows" 
-    runSystem: "py -3 -m dynamicfluency.scripts.make_postagged_grids_from_alligned_grids -d " + outputDir$ + " -a " + allignment$
+    runSystem: "py -3.10 -m dynamicfluency.scripts.make_postagged_grids_from_alligned_grids -d " + outputDir$ + " -a " + allignment$
 else
     runSystem: "python3 -m dynamicfluency.scripts.make_postagged_grids_from_alligned_grids -d " + outputDir$ + " -a " + allignment$
     endif
 
 if operatingSystem$ == "Windows" 
-    runSystem: "py -3 -m dynamicfluency.scripts.make_repetitionstagged_grids_from_postagged_grids -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
+    runSystem: "py -3.10 -m dynamicfluency.scripts.make_repetitionstagged_grids_from_postagged_grids -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
 else
     runSystem: "python3 -m dynamicfluency.scripts.make_repetitionstagged_grids_from_postagged_grids -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
     endif
  
 if operatingSystem$ == "Windows" 
-    runSystem: "py -3 -m dynamicfluency.scripts.make_frequencytagged_girds_from_postagged_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$ + " -a " + allignment$
+    runSystem: "py -3.10 -m dynamicfluency.scripts.make_frequencytagged_girds_from_postagged_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$ + " -a " + allignment$
 else
     runSystem: "python3 -m dynamicfluency.scripts.make_frequencytagged_girds_from_postagged_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$ + " -a " + allignment$
     endif
@@ -83,7 +83,7 @@ procedure aeneas_windows
         Insert string: 0, base$ + " " + inputDir$ + pathSep$ + soundFile$ + " " + inputDir$ + pathSep$ + tokensFile$[file] + args$ + " " + outputDir$ + pathSep$ + outputFileTokens$
         Insert string: 0, base$ + " " + inputDir$ + pathSep$ + soundFile$ + " " + inputDir$ + pathSep$ + phrasesFile$[file] + args$ + " " + outputDir$ + pathSep$ + outputFilePhrases$ 
         endfor
-    Insert string: 0, "py -3 -m dynamicfluency.scripts.convert_aeneas_to_textgrids -d " + outputDir$
+    Insert string: 0, "py -3.10 -m dynamicfluency.scripts.convert_aeneas_to_textgrids -d " + outputDir$
     Save as raw text file: "dynamicfluency_aeneas.auto.cmd"
     Remove
     runSystem: "dynamicfluency_aeneas.auto.cmd"
@@ -174,7 +174,7 @@ procedure set_config
         exitScript: "The configuration file specified does not appear to be a DynamicFluency configuration file"
         endif
 
-    numberOfLines = Get number of strings
+        numberOfLines = Get number of strings
     if numberOfLines > 27
         @settings_error_later
         endif
@@ -372,7 +372,8 @@ procedure dynamicity
     for tier from 8+1 to 17
         plusObject: idTier[tier]
         endfor
-    Merge
+
+    dynamicmerge = Merge
 
     selectObject: idTier[8]
     for tier from 8+1 to 17
@@ -398,6 +399,7 @@ procedure postprocessing
         repFile$ = replace$(soundFile$, soundExt$, ".repetitions.TextGrid", 1)
         freqFile$ = replace$(soundFile$, soundExt$, ".frequencies.TextGrid", 1)
         mergedFile$ = replace$(soundFile$, soundExt$, ".merged.TextGrid", 1) 
+        dynamictable$ =  replace$(soundFile$, soundExt$, ".dynamic.txt", 1)
 
         idUhm = Read from file: outputDir$ + pathSep$ + uhmFile$
         idAllignment = Read from file: outputDir$ + pathSep$ + allignmentFile$
@@ -405,13 +407,21 @@ procedure postprocessing
         idRep = Read from file: outputDir$ + pathSep$ + repFile$
         idFreq = Read from file: outputDir$ + pathSep$ + freqFile$
 
-
         selectObject: idUhm, idAllignment, idPOS, idRep, idFreq
         idMerged = Merge
         Save as text file: outputDir$ + pathSep$ + mergedFile$
 
         @dynamicity
-        
+
+        selectObject: dynamicmerge
+        Down to Table: "no", 6, "yes", "no"
+        Insert column: 1, "SoundfileID"
+        nrowsinfile = Get number of rows
+        for irow to nrowsinfile
+           Set string value: irow, "SoundfileID", soundFile$ 
+        endfor
+        Save as tab-separated file: outputDir$ + pathSep$ + dynamictable$
+ 
         if (showIntermediateObjects == 0) or (showResultInPraat == 0)
             removeObject: idUhm, idAllignment, idPOS, idRep, idFreq
             endif
