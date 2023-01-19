@@ -60,6 +60,16 @@ beginPause: "Uhm-o-meter settings"
     comment: "However, you can also use your own, initialised with resources/add_frequency_dictionairy.py"
     sentence: "Database_Table", "Default"
     sentence: "Database_File", "databases/main.db"
+    endPause: "Next", 1
+
+beginPause: "Dynamicity settings"
+    comment: "parameters for the  Moving Average across a textgrid."
+    comment: "does not perform an fft convolution, instead using a dumb algorithm."
+    real: "steps_per_second", 5
+    real: "window_length_sec", 5
+    optionMenu: "kernel", 1
+        option: "moving_average"
+#       option: "gaussian"
     endPause: "Finish", 1
 
 # A simple but ugly write to file.
@@ -87,6 +97,10 @@ Insert string: 20, "To Ignore=" + to_Ignore$
 Insert string: 21, "Max Repitition Read=" + string$(max_Repitition_Read)
 Insert string: 22, "Database File=" + database_File$ 
 Insert string: 23, "Database Table=" + database_Table$
+Insert string: 24, ""
+Insert string: 25, "Steps per second=" + string$(steps_per_second)
+Insert string: 26, "Window length=" + string$(window_length_sec)
+Insert string: 27, "Kernel Type=" + kernel$
 
 Save as raw text file: configuration_File$
 

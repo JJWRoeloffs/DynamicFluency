@@ -175,10 +175,10 @@ procedure set_config
         endif
 
     numberOfLines = Get number of strings
-    if numberOfLines > 23
+    if numberOfLines > 27
         @settings_error_later
         endif
-    if numberOfLines < 23
+    if numberOfLines < 27
         @settings_error_earlier
         endif
     
@@ -200,6 +200,11 @@ procedure set_config
     maxRepititionRead$ = "300"
     database$ = "databases/main.db"
     databaseTable$ = "Default"
+
+    #Dynamicity settings
+    stepsPerSecond = 5
+    windowLength = 5
+    kernelType$ = "moving_average"
     
 
     for i to numberOfLines
@@ -258,6 +263,19 @@ procedure set_config
         elif left$(line$, sep) == "Database Table="
             databaseTable$ = right$(line$, len-sep)
             endif
+        
+        # Dynamicity Settings
+        elif left$(line$, sep) == "Steps per second="
+            stepsPerSecond = number(right$(line$, len-sep))
+            endif
+
+        elif left$(line$, sep) == "Window length="
+            windowLength = number(right$(line$, len-sep))
+        
+        elif left$(line$, sep) == "Kernel Type="
+            kernelType$ = right$(line$, len-sep)
+            endif
+
         endfor
         
     # Throwing errors for essential missing values.
@@ -346,7 +364,7 @@ procedure dynamicity
     for tier from 8 to 17
         selectObject: idMerged
         idTier[tier] = Extract one tier: tier
-        runScript: "scripts" + pathSep$ + "dynamicity.praat", 5, 5, "moving_average"
+        runScript: "scripts" + pathSep$ + "dynamicity.praat", stepsPerSecond, windowLength, kernelType$
         Remove tier: 1
         endfor
     
