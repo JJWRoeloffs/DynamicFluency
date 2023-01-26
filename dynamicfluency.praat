@@ -159,6 +159,42 @@ procedure uhm_postprocessing
         else
             runSystem: "mv " + inputDir$ + pathSep$ + uhmFile$ + " " + outputDir$ + pathSep$  + uhmFile$
             endif
+        
+        idObject = Read from file: outputDir$ + pathSep$ + uhmFile$
+
+        # Phrases
+        nrIntervals = Get number of intervals: 2
+        for i to nrIntervals
+            label$ = Get label of interval: 2, i
+            if label$ == ""
+                Set interval text: 2, i, "1"
+            else
+                Set interval text: 2, i, "0"
+                endif
+            endfor
+
+        # DFauto
+        nrIntervals = Get number of intervals: 3
+        for j to nrIntervals
+            label$ = Get label of interval: 3, j
+            if label$ == ""
+                intervalStart = Get start time of interval: 3, j
+                intervalEnd = Get end time of interval: 3, j
+                intervalAverage = intervalStart + (0.5*(intervalEnd-intervalStart))
+                phrasesInterval = Get interval at time: 2, intervalAverage
+                phrasesText$ = Get label of interval: 2, phrasesInterval
+                if phrasesText$ == "0"
+                    Set interval text: 3, j, "0"
+                else
+                    Set interval text: 3, j, ""
+                    endif
+            else
+                Set interval text: 3, j, "1"
+                endif
+            endfor
+
+        Save as text file: outputDir$ + pathSep$ + uhmFile$
+        Remove
         endfor
     endproc
 
@@ -262,12 +298,10 @@ procedure set_config
                         
         elif left$(line$, sep) == "Database Table="
             databaseTable$ = right$(line$, len-sep)
-            endif
         
         # Dynamicity Settings
         elif left$(line$, sep) == "Steps per second="
             stepsPerSecond = number(right$(line$, len-sep))
-            endif
 
         elif left$(line$, sep) == "Window length="
             windowLength = number(right$(line$, len-sep))
@@ -360,26 +394,28 @@ procedure settings_error_earlier
 procedure dynamicity 
     # This hard-coding the relevant tiers.
     # Requires idMerged to be set.
+    relevantTiers# = { 1, 2, 3, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 }
 
-    for tier from 8 to 17
+    for i from 1 to size(relevantTiers#)
+        tier = relevantTiers#[i]
         selectObject: idMerged
         idTier[tier] = Extract one tier: tier
         runScript: "scripts" + pathSep$ + "dynamicity.praat", stepsPerSecond, windowLength, kernelType$
         Remove tier: 1
         endfor
     
-    selectObject: idTier[8]
-    for tier from 8+1 to 17
+    selectObject: idTier[1]
+    for i from 1 to size(relevantTiers#)
+        tier = relevantTiers#[i]
         plusObject: idTier[tier]
         endfor
 
     dynamicmerge = Merge
 
-    selectObject: idTier[8]
-    for tier from 8+1 to 17
-        plusObject: idTier[tier]
+    for i from 1 to size(relevantTiers#)
+        tier = relevantTiers#[i]
+        removeObject: idTier[tier]
         endfor
-    Remove
 
 endproc
 
