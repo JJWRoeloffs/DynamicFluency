@@ -87,11 +87,7 @@ procedure interval_convolution
         movingStart+=(1/steps_per_second)
         movingEnd+=(1/steps_per_second)
         
-        if amountSummed == 0
-            result#[i] = ""
-        else
-            result#[i] = movingSum/amountSummed
-            endif
+        result#[i] = movingSum/amountSummed
         endfor
 endproc
 
@@ -139,6 +135,10 @@ procedure write_to_textgrid
     for i to nrSteps
         movingBoundary+= 1/steps_per_second
         Insert boundary: 2, movingBoundary
-        Set interval text: 2, i+1, string$(result#[i])
+        if result#[i] == undefined
+            Set interval text: 2, i+1, ""
+        else
+            Set interval text: 2, i+1, string$(result#[i])
+            endif
         endfor
 endproc
