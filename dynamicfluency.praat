@@ -48,9 +48,15 @@ else
     endif
  
 if operatingSystem$ == "Windows" 
-    runSystem: "py -3.10 -m dynamicfluency.scripts.make_frequencytagged_girds_from_postagged_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$ + " -a " + allignment$
+    runSystem: "py -3.10 -m dynamicfluency.scripts.make_frequencytagged_girds_from_alligned_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$ + " -a " + allignment$
 else
-    runSystem: "python3 -m dynamicfluency.scripts.make_frequencytagged_girds_from_postagged_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$ + " -a " + allignment$
+    runSystem: "python3 -m dynamicfluency.scripts.make_frequencytagged_girds_from_alligned_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$ + " -a " + allignment$
+    endif
+
+if operatingSystem$ == "Windows" 
+    runSystem: "py -3.10 -m dynamicfluency.scripts.make_syntax_grids_from_postagged_grids -d " + outputDir$
+else
+    runSystem: "python3 -m dynamicfluency.scripts.make_syntax_grids_from_postagged_grids -d " + outputDir$
     endif
 
 @postprocessing
@@ -167,7 +173,9 @@ procedure uhm_postprocessing
         for i to nrIntervals
             label$ = Get label of interval: 2, i
             if label$ == ""
-                Set interval text: 2, i, "1"
+                intervalStart = Get start time of interval: 2, i
+                intervalEnd = Get end time of interval: 2, i
+                Set interval text: 2, i, string$((intervalEnd-intervalStart)/2)
             else
                 Set interval text: 2, i, "0"
                 endif
@@ -177,11 +185,11 @@ procedure uhm_postprocessing
         nrIntervals = Get number of intervals: 3
         for j to nrIntervals
             label$ = Get label of interval: 3, j
+            intervalStart = Get start time of interval: 3, j
+            intervalEnd = Get end time of interval: 3, j
+            
             if label$ == ""
-                intervalStart = Get start time of interval: 3, j
-                intervalEnd = Get end time of interval: 3, j
-                intervalAverage = intervalStart + (0.5*(intervalEnd-intervalStart))
-                phrasesInterval = Get interval at time: 2, intervalAverage
+                phrasesInterval = Get interval at time: 2, (intervalEnd+intervalStart)/2
                 phrasesText$ = Get label of interval: 2, phrasesInterval
                 if phrasesText$ == "0"
                     Set interval text: 3, j, "0"
@@ -189,7 +197,7 @@ procedure uhm_postprocessing
                     Set interval text: 3, j, ""
                     endif
             else
-                Set interval text: 3, j, "1"
+                Set interval text: 3, j, string$((intervalEnd-intervalStart)/2)
                 endif
             endfor
 
@@ -394,7 +402,7 @@ procedure settings_error_earlier
 procedure dynamicity 
     # This hard-coding the relevant tiers.
     # Requires idMerged to be set.
-    relevantTiers# = { 1, 2, 3, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 }
+    relevantTiers# = { 1, 2, 3, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }
 
     for i from 1 to size(relevantTiers#)
         tier = relevantTiers#[i]
@@ -434,6 +442,7 @@ procedure postprocessing
         posFile$ = replace$(soundFile$, soundExt$, ".pos_tags.TextGrid", 1)
         repFile$ = replace$(soundFile$, soundExt$, ".repetitions.TextGrid", 1)
         freqFile$ = replace$(soundFile$, soundExt$, ".frequencies.TextGrid", 1)
+        syntFile$ = replace$(soundFile$, soundExt$, ".syntax.TextGrid", 1)
         mergedFile$ = replace$(soundFile$, soundExt$, ".merged.TextGrid", 1) 
         dynamictable$ =  replace$(soundFile$, soundExt$, ".dynamic.txt", 1)
 
@@ -442,8 +451,9 @@ procedure postprocessing
         idPOS = Read from file: outputDir$ + pathSep$ + posFile$
         idRep = Read from file: outputDir$ + pathSep$ + repFile$
         idFreq = Read from file: outputDir$ + pathSep$ + freqFile$
+        idSynt = Read from file: outputDir$ + pathSep$ + syntFile$
 
-        selectObject: idUhm, idAllignment, idPOS, idRep, idFreq
+        selectObject: idUhm, idAllignment, idPOS, idRep, idFreq, idSynt
         idMerged = Merge
         Save as text file: outputDir$ + pathSep$ + mergedFile$
 
@@ -459,7 +469,7 @@ procedure postprocessing
         Save as tab-separated file: outputDir$ + pathSep$ + dynamictable$
  
         if (showIntermediateObjects == 0) or (showResultInPraat == 0)
-            removeObject: idUhm, idAllignment, idPOS, idRep, idFreq
+            removeObject: idUhm, idAllignment, idPOS, idRep, idFreq, idSynt
             endif
         if showResultInPraat == 1
             idSound = Read from file: inputDir$ + pathSep$ + soundFile$
