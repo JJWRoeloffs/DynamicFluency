@@ -128,7 +128,7 @@ endproc
 
 procedure write_to_textgrid
     tierName$ = Get tier name: 1
-    Insert interval tier: 2, tierName$ + "Dynamicity"
+    Insert interval tier: 2, tierName$ + "Dyn"
 
     movingBoundary = window_length_sec/2
     Insert boundary: 2, movingBoundary

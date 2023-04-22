@@ -74,13 +74,13 @@ procedure setSB: .idSnd, .idTG
   .nrTiers = Get number of tiers
   for .tier to .nrTiers
     .name$ = Get tier name: .tier
-    if   .name$ == "Nuclei"
+    if   .name$ == "Syllables"
       .tierNuclei = .tier
-    elif .name$ == "Phrases"
+    elif .name$ == "Pauzes"
       .tierPhrases = .tier
-    elif .name$ == "DFauto" + " ('language$')"
+    elif .name$ == "FilledPauses" + " ('language$')"
       Remove tier: .tier
-      Insert interval tier: .tier, "DFauto" + " ('language$')"
+      Insert interval tier: .tier, "FilledPauses" + " ('language$')"
       .tierAuto = .tier
     elif left$(.name$, 5) == "DFman" or left$(.name$, 5) == "dfMan"
       .tierMan = .tier
@@ -88,7 +88,7 @@ procedure setSB: .idSnd, .idTG
     endfor
 
   if .tierNuclei == 0
-    exitScript: "No tier ""Nuclei"" found, please run ""SyllableNuclei.praat"" first."
+    exitScript: "No tier ""Syllables"" found, please run ""SyllableNuclei.praat"" first."
     endif
 
   nrSyllables = Get number of points: .tierNuclei
@@ -151,7 +151,7 @@ procedure setSB: .idSnd, .idTG
 
   selectObject: .idTG
   if not .tierAuto
-    Insert interval tier: .nrTiers + 1, "DFauto" + " ('language$')"
+    Insert interval tier: .nrTiers + 1, "FilledPauses" + " ('language$')"
     .tierAuto = .nrTiers + 1
     endif
 

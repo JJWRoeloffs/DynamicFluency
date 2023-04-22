@@ -101,7 +101,7 @@ procedure findSyllableNuclei
 
 # get pauses (silences) and speakingtime
   idTG = To TextGrid (silences): threshold3, minimum_pause_duration, 0.1, "", "sound"
-  Set tier name: 1, "Phrases"
+  Set tier name: 1, "Pauzes"
   nrIntervals = Get number of intervals: 1
   nsounding   = 0
   speakingtot = 0
@@ -148,12 +148,7 @@ procedure findSyllableNuclei
     endfor
 
   selectObject: idTG
-  Insert point tier: 1, "Nuclei"
-
-  tierDebug = 0
-  if tierDebug
-    Insert point tier: tierDebug, "DEBUG"
-    endif
+  Insert point tier: 1, "Syllables"
 
 # fill array with the largest peaks *followed* by a dip > minimum_dip_near_peak (obsolete), OR
 # with the largest peaks *surrounded* by a dip > minimum_dip_near_peak (current default method)
@@ -170,10 +165,6 @@ procedure findSyllableNuclei
   selectObject: idTG
 
   for point to nrPoints
-    if tierDebug
-      Insert point: tierDebug, t[point], fixed$(db[point], 2)
-      endif
-
     if db[point] > dbMax
       tMax  =  t[point]
       dbMax = db[point]
