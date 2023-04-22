@@ -18,6 +18,7 @@ form Find Speaking Fluency
 
 @set_config
 @process_arguments
+@assert_output_empty
 
 runScript: "scripts" + pathSep$ + "uhm-o-meter" + pathSep$ + "SyllableNuclei.praat", operatingSystem$, inputFileSpec$, preProcessing$, silenceTreshhold, minimumDipNearPeak, minimumPauseDuration, language$, filledPauseThreshold 
 @uhm_postprocessing
@@ -372,6 +373,25 @@ procedure process_arguments
 
     endproc
 
+procedure assert_output_empty
+    .filesInOutput$# = fileNames$#: outputDir$
+    if size(.filesInOutput$#) != 0
+        beginPause: "Specified output directory contains files"
+            comment: "The specified output directory: " + outputDir$
+            comment: "currently contains files that might be overwritten."
+            comment: "Do you want to delete ALL files in that directory?"
+            .deleteFiles = endPause: "Yes", "No", 2
+
+        if .deleteFiles == 2
+            removeObject: idSoundsList
+            exitScript()
+        else
+            for i from 1 to size(.filesInOutput$#)
+                deleteFile: outputDir$ + pathSep$ + .filesInOutput$#[i]
+                endfor
+            endif
+        endif
+    endproc
 
 procedure settings_error_later
     beginPause: "Settings Error"
@@ -380,7 +400,7 @@ procedure settings_error_later
         comment: "________________________________________________________________________________"
         comment: "Do you want to run the script anyway?"
         run_anyway = endPause: "Yes", "No", 2
-        if run_anyway = 2
+        if run_anyway == 2
             removeObject: idConfig
             exitScript()
             endif
@@ -393,7 +413,7 @@ procedure settings_error_earlier
         comment: "________________________________________________________________________________"
         comment: "Do you want to run the script anyway?"
         run_anyway = endPause: "Yes", "No", 2
-        if run_anyway = 2
+        if run_anyway == 2
             removeObject: idConfig
             exitScript()
             endif
@@ -481,6 +501,5 @@ procedure postprocessing
 
 # Cleans away "global variables" stored as cashed text files.
 procedure cleanup
-    selectObject: idSoundsList
-    Remove
+    removeObject: idSoundsList
     endproc
