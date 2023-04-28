@@ -14,11 +14,6 @@
 
 
 form Detect Syllables and Filled Pauses in Speech Utterances
-  optionmenu Os 1
-    option Windows
-    option Linux
-    option Mac
-
   sentence FileSpec ./*.flac
   comment ________________________________________________________________________________
 
@@ -241,7 +236,7 @@ procedure processArgs
 
   len        = length(fileSpec$)
   sep        = rindex_regex(fileSpec$, "[\\/]")
-  if os$ = "Windows"
+  if windows
     directory$ = "..\\..\\" + left$(fileSpec$, sep)
   else
     directory$ = "../../" + left$(fileSpec$, sep)

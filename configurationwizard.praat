@@ -13,10 +13,6 @@ form Find Speaking Fluency Configuration
     endform
 
 beginPause: "General Settings"
-    optionMenu: "Operating_System", 1
-        option: "Windows"
-        option: "Linux"
-#       option: "MacOS  (not yet implemented)"
     optionMenu: "Language", 1
         option: "English"
 #       option Mandarin (not yet implemented)
@@ -77,30 +73,29 @@ id = Create Strings from tokens: "configuration", "DynamicFluency configuration 
 
 Insert string: 2, ""
 Insert string: 3, "General Settings"
-Insert string: 4, "OS=" + operating_System$
-Insert string: 5, "Input File Spec=" + input_File_Spec$
-Insert string: 6, "Output Dir=" + output_Directory$
-Insert string: 7, "Language=" + language$
-Insert string: 8, "Show Intermediate Objects=" + string$(show_Intermediate_Objects) 
-Insert string: 9, "Show Results in Praat=" + string$(show_Results_In_Praat)
-Insert string: 10, "Transcription Format=" + transcription_Format$
-Insert string: 11, ""
-Insert string: 12, "Uhm-o-meter Settings"
-Insert string: 13, "Pre-processing=" + pre_processing$
-Insert string: 14, "Silence Treshhold=" + string$(silence_threshold_dB)
-Insert string: 15, "Minimum dip near peak=" + string$(minimum_dip_near_peak_dB)
-Insert string: 16, "Minimum pause duration=" + string$(minimum_pause_duration_s)
-Insert string: 17, "Filled pause threshold=" + string$(filled_Pause_threshold)
-Insert string: 18, ""
-Insert string: 19, "Repititions and Word Frequencies"
-Insert string: 20, "To Ignore=" + to_Ignore$
-Insert string: 21, "Max Repitition Read=" + string$(max_Repitition_Read)
-Insert string: 22, "Database File=" + database_File$ 
-Insert string: 23, "Database Table=" + database_Table$
-Insert string: 24, ""
-Insert string: 25, "Steps per second=" + string$(steps_per_second)
-Insert string: 26, "Window length=" + string$(window_length_sec)
-Insert string: 27, "Kernel Type=" + kernel$
+Insert string: 4, "Input File Spec=" + input_File_Spec$
+Insert string: 5, "Output Dir=" + output_Directory$
+Insert string: 6, "Language=" + language$
+Insert string: 7, "Show Intermediate Objects=" + string$(show_Intermediate_Objects) 
+Insert string: 8, "Show Results in Praat=" + string$(show_Results_In_Praat)
+Insert string: 9, "Transcription Format=" + transcription_Format$
+Insert string: 10, ""
+Insert string: 11, "Uhm-o-meter Settings"
+Insert string: 12, "Pre-processing=" + pre_processing$
+Insert string: 13, "Silence Treshhold=" + string$(silence_threshold_dB)
+Insert string: 14, "Minimum dip near peak=" + string$(minimum_dip_near_peak_dB)
+Insert string: 15, "Minimum pause duration=" + string$(minimum_pause_duration_s)
+Insert string: 16, "Filled pause threshold=" + string$(filled_Pause_threshold)
+Insert string: 17, ""
+Insert string: 18, "Repititions and Word Frequencies"
+Insert string: 19, "To Ignore=" + to_Ignore$
+Insert string: 20, "Max Repitition Read=" + string$(max_Repitition_Read)
+Insert string: 21, "Database File=" + database_File$ 
+Insert string: 22, "Database Table=" + database_Table$
+Insert string: 23, ""
+Insert string: 24, "Steps per second=" + string$(steps_per_second)
+Insert string: 25, "Window length=" + string$(window_length_sec)
+Insert string: 26, "Kernel Type=" + kernel$
 
 Save as raw text file: configuration_File$
 

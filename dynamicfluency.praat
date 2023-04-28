@@ -20,12 +20,12 @@ form Find Speaking Fluency
 @process_arguments
 @assert_output_empty
 
-runScript: "scripts" + pathSep$ + "uhm-o-meter" + pathSep$ + "SyllableNuclei.praat", operatingSystem$, inputFileSpec$, preProcessing$, silenceTreshhold, minimumDipNearPeak, minimumPauseDuration, language$, filledPauseThreshold 
+runScript: "scripts" + pathSep$ + "uhm-o-meter" + pathSep$ + "SyllableNuclei.praat", inputFileSpec$, preProcessing$, silenceTreshhold, minimumDipNearPeak, minimumPauseDuration, language$, filledPauseThreshold 
 @uhm_postprocessing
 
 if allignment$ = "aeneas"
     @aeneas_preprocessing
-    if operatingSystem$ == "Windows" 
+    if windows
         @aeneas_windows
     else
         @aeneas_unix
@@ -36,25 +36,25 @@ if allignment$ == "maus"
     @maus
     endif
 
-if operatingSystem$ == "Windows" 
+if windows
     runSystem: "py -3.10 -m dynamicfluency.scripts.make_postagged_grids_from_alligned_grids -d " + outputDir$ + " -a " + allignment$
 else
     runSystem: "python3 -m dynamicfluency.scripts.make_postagged_grids_from_alligned_grids -d " + outputDir$ + " -a " + allignment$
     endif
 
-if operatingSystem$ == "Windows" 
+if windows 
     runSystem: "py -3.10 -m dynamicfluency.scripts.make_repetitionstagged_grids_from_postagged_grids -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
 else
     runSystem: "python3 -m dynamicfluency.scripts.make_repetitionstagged_grids_from_postagged_grids -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
     endif
  
-if operatingSystem$ == "Windows" 
+if windows
     runSystem: "py -3.10 -m dynamicfluency.scripts.make_frequencytagged_girds_from_alligned_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$ + " -a " + allignment$
 else
     runSystem: "python3 -m dynamicfluency.scripts.make_frequencytagged_girds_from_alligned_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$ + " -a " + allignment$
     endif
 
-if operatingSystem$ == "Windows" 
+if windows
     runSystem: "py -3.10 -m dynamicfluency.scripts.make_syntax_grids_from_postagged_grids -d " + outputDir$
 else
     runSystem: "python3 -m dynamicfluency.scripts.make_syntax_grids_from_postagged_grids -d " + outputDir$
@@ -144,7 +144,7 @@ procedure maus
         mausFile$ = replace$(soundFile$, soundExt$, ".TextGrid", 1)
         allignmentFile$ = replace$(soundFile$, soundExt$, ".allignment.TextGrid", 1)
 
-        if operatingSystem$ == "Windows"
+        if windows
             runSystem: "copy /-Y " + inputDir$ + pathSep$ + mausFile$ + " " + outputDir$ + pathSep$ + allignmentFile$
         else
             runSystem: "cp " + inputDir$ + pathSep$ + mausFile$ + " " + outputDir$ + pathSep$ + allignmentFile$
@@ -161,7 +161,7 @@ procedure uhm_postprocessing
         soundExt$ = right$(soundFile$, length(soundFile$)-rindex(soundFile$, ".")+1)
 
         uhmFile$ = replace$(soundFile$, soundExt$, ".uhm.TextGrid", 1)
-        if operatingSystem$ == "Windows"
+        if windows
             runSystem: "move /-Y " + inputDir$ + pathSep$ + uhmFile$ + " " + outputDir$ + pathSep$  + uhmFile$
         else
             runSystem: "mv " + inputDir$ + pathSep$ + uhmFile$ + " " + outputDir$ + pathSep$  + uhmFile$
@@ -220,10 +220,10 @@ procedure set_config
         endif
 
         numberOfLines = Get number of strings
-    if numberOfLines > 27
+    if numberOfLines > 26
         @settings_error_later
         endif
-    if numberOfLines < 27
+    if numberOfLines < 26
         @settings_error_earlier
         endif
     
@@ -257,11 +257,7 @@ procedure set_config
         len = length(line$)
         sep = rindex_regex(line$, "[=]")
 
-        # General Settings
-        if left$(line$, sep) == "OS="
-            operatingSystem$ = right$(line$, len-sep)
-
-        elif left$(line$, sep) == "Input File Spec="
+        if left$(line$, sep) == "Input File Spec="
             inputFileSpec$ = right$(line$, len-sep)
         
         elif left$(line$, sep) == "Output Dir="
@@ -320,13 +316,8 @@ procedure set_config
             endif
 
         endfor
-        
-    # Throwing errors for essential missing values.
-    if not operatingSystem$ <> ""
-        writeInfoLine: operatingSystem$
-        exitScript: "No Operating System specified"
-        endif
 
+# Throwing errors for essential missing values.
     if not inputFileSpec$ <> ""
         exitScript: "No input file spec specified"
         endif
@@ -353,7 +344,7 @@ procedure process_arguments
     inputDir$  = left$(inputFileSpec$, sep - 1)
     selection$ = right$(inputFileSpec$, len-sep)
 
-    if operatingSystem$ == "Windows"
+    if windows
         pathSep$ = "\"
     else
         pathSep$ = "/"

@@ -1,7 +1,6 @@
 DynamicFluency configuration file
 
 General Settings
-OS=Windows
 Input File Spec=input/*.wav
 Output Dir=output
 Language=English
