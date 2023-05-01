@@ -15,9 +15,9 @@ form Find Speaking Fluency Configuration
 beginPause: "General Settings"
     optionMenu: "Language", 1
         option: "English"
+        option: "Dutch"
 #       option Mandarin (not yet implemented)
 #       option Spanish  (not yet implemented)
-#       option Dutch    (not yet implemented)
     comment: "________________________________________________________________________________"
     sentence: "Input_File_Spec", "input/*.wav"
     sentence: "Output_Directory", "output"
@@ -25,12 +25,15 @@ beginPause: "General Settings"
     boolean: "Show_Results_In_Praat", 1
     comment: "________________________________________________________________________________"
     comment: "If aenas is configured, you can use a .TextGrid or .txt with the same name for the transcription"
-    comment: "if you are using this, specify the transcription format."
+    comment: "if you are using this, specify the transcription format as txt or Textgird"
+    comment: "if you are using an external allignment tool (MAUS or Whisper) instead,"
+    comment: "specify which external type."
     comment: "else, keep this setting at maus."
     optionMenu: "Transcription_Format", 1
-        option: "maus"
-        option: "TextGrid"
-        option: "txt"
+        option: "Maus"
+        option: "Whisper"
+        option: "Aeneas (from TextGrid)"
+        option: "Aeneas (from txt)"
     endPause: "Next", 1
 
 beginPause: "Uhm-o-meter settings"
@@ -67,6 +70,17 @@ beginPause: "Dynamicity settings"
         option: "moving_average"
 #       option: "gaussian"
     endPause: "Finish", 1
+
+if transcription_Format$ == "Aeneas (from TextGrid)"
+    transcription_Format$ = "TextGrid"
+elif transcription_Format$ == "Aeneas (from txt)"
+    transcription_Format$ = "txt"
+    endif
+
+if ((transcription_Format$ == "TextGrid") or (transcription_Format$ == "txt")) and (windows == 0)
+    exitScript: "Aeneas is currently only supported on Windows"
+    endif
+
 
 # A simple but ugly write to file.
 id = Create Strings from tokens: "configuration", "DynamicFluency configuration file", "_"

@@ -45,8 +45,8 @@ procedure calculate_nr_steps
     end   = Get end time
     duration = end - start
     nrSteps = floor((duration-window_length_sec)*steps_per_second)
-    if nrSteps < 1
-        nrSteps = 1
+    if nrSteps < 0
+        nrSteps = 0
         endif
 endproc
 
@@ -62,7 +62,7 @@ procedure interval_convolution
             k+=1
             intervalStart = Get start time of interval: 1, k
             endwhile
-        
+
         movingSum = 0
         amountSummed = 0
 
@@ -86,7 +86,7 @@ procedure interval_convolution
 
         movingStart+=(1/steps_per_second)
         movingEnd+=(1/steps_per_second)
-        
+
         result#[i] = movingSum/amountSummed
         endfor
 endproc
@@ -96,6 +96,12 @@ procedure point_convolution
     movingStart = start
     movingEnd = start+window_length_sec
     nrPoints = Get number of points: 1
+
+    if nrPoints == 0
+        nrSteps = 0
+        k = 0
+        endif
+
     result# = zero#(nrSteps)
     for i to nrSteps
         pointStart = Get time of point: 1, k
@@ -103,7 +109,7 @@ procedure point_convolution
             k+=1
             pointStart = Get time of point: 1, k
             endwhile
-        
+
         movingSum = 0
         amountSummed = 0
 
@@ -121,9 +127,9 @@ procedure point_convolution
 
         movingStart+=(1/steps_per_second)
         movingEnd+=(1/steps_per_second)
-        
+
         result#[i] = movingSum
-        endfor   
+        endfor
 endproc
 
 procedure write_to_textgrid

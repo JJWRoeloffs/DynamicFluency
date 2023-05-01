@@ -37,9 +37,9 @@ if allignment$ == "maus"
     endif
 
 if windows
-    runSystem: "py -3.10 -m dynamicfluency.scripts.make_postagged_grids_from_alligned_grids -d " + outputDir$ + " -a " + allignment$
+    runSystem: "py -3.10 -m dynamicfluency.scripts.make_postagged_grids_from_alligned_grids -d " + outputDir$ + " -a " + allignment$ + " -l" + language$
 else
-    runSystem: "python3 -m dynamicfluency.scripts.make_postagged_grids_from_alligned_grids -d " + outputDir$ + " -a " + allignment$
+    runSystem: "python3 -m dynamicfluency.scripts.make_postagged_grids_from_alligned_grids -d " + outputDir$ + " -a " + allignment$ + " -l" + language$
     endif
 
 if windows 
@@ -55,9 +55,9 @@ else
     endif
 
 if windows
-    runSystem: "py -3.10 -m dynamicfluency.scripts.make_syntax_grids_from_postagged_grids -d " + outputDir$
+    runSystem: "py -3.10 -m dynamicfluency.scripts.make_syntax_grids_from_postagged_grids -d " + outputDir$ + " -l" + language$
 else
-    runSystem: "python3 -m dynamicfluency.scripts.make_syntax_grids_from_postagged_grids -d " + outputDir$
+    runSystem: "python3 -m dynamicfluency.scripts.make_syntax_grids_from_postagged_grids -d " + outputDir$ + " -l" + language$
     endif
 
 @postprocessing
@@ -355,12 +355,24 @@ procedure process_arguments
 
     if (transcriptionFormat$ == "TextGrid") or (transcriptionFormat$ == "txt")
         allignment$ = "aeneas"
-    else
+        nrAllignmentTiers = 2
+    elif transcriptionFormat$ == "Maus"
         allignment$ = "maus"
+        nrAllignmentTiers = 3
+    elif transcriptionFormat# == "Whisper"
+        allignment$ = "whisper"
+        nrAllignmentTiers = 4
+    else:
+        exitScript: "Unknown transcription type:" + transcriptionFormat$
         endif
 
     if (language$ == "English" and databaseTable$ == "Default")
         databaseTable$ = "subtlexus"
+        endif
+
+    if (language$ == "Dutch" and databaseTable$ == "Default")
+        databaseTable$ = "subtlexnl"
+        endif
 
     endproc
 
@@ -411,29 +423,26 @@ procedure settings_error_earlier
     endproc
 
 procedure dynamicity 
-    # This hard-coding the relevant tiers.
     # Requires idMerged to be set.
-    relevantTiers# = { 1, 2, 3, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }
+    selectObject: idMerged
+    nrTiers = Get number of tiers
 
-    for i from 1 to size(relevantTiers#)
-        tier = relevantTiers#[i]
+    for i from 1 to nrTiers - nrAllignmentTiers
         selectObject: idMerged
-        idTier[tier] = Extract one tier: tier
+        idTier[i] = Extract one tier: i + nrAllignmentTiers
         runScript: "scripts" + pathSep$ + "dynamicity.praat", stepsPerSecond, windowLength, kernelType$
         Remove tier: 1
         endfor
-    
+
     selectObject: idTier[1]
-    for i from 1 to size(relevantTiers#)
-        tier = relevantTiers#[i]
-        plusObject: idTier[tier]
+    for i from 2 to nrTiers - nrAllignmentTiers
+        plusObject: idTier[i]
         endfor
 
     dynamicmerge = Merge
 
-    for i from 1 to size(relevantTiers#)
-        tier = relevantTiers#[i]
-        removeObject: idTier[tier]
+    for i from 1 to nrTiers - nrAllignmentTiers
+        removeObject: idTier[i]
         endfor
 
 endproc
@@ -448,8 +457,8 @@ procedure postprocessing
         soundFile$ = Get string: file
         soundExt$ = right$(soundFile$, length(soundFile$)-rindex(soundFile$, ".")+1)
 
-        uhmFile$ = replace$(soundFile$, soundExt$, ".uhm.TextGrid", 1)
         allignmentFile$ = replace$(soundFile$, soundExt$, ".allignment.TextGrid", 1)
+        uhmFile$ = replace$(soundFile$, soundExt$, ".uhm.TextGrid", 1)
         posFile$ = replace$(soundFile$, soundExt$, ".pos_tags.TextGrid", 1)
         repFile$ = replace$(soundFile$, soundExt$, ".repetitions.TextGrid", 1)
         freqFile$ = replace$(soundFile$, soundExt$, ".frequencies.TextGrid", 1)
@@ -457,14 +466,15 @@ procedure postprocessing
         mergedFile$ = replace$(soundFile$, soundExt$, ".merged.TextGrid", 1) 
         dynamictable$ =  replace$(soundFile$, soundExt$, ".dynamic.txt", 1)
 
-        idUhm = Read from file: outputDir$ + pathSep$ + uhmFile$
         idAllignment = Read from file: outputDir$ + pathSep$ + allignmentFile$
+        idUhm = Read from file: outputDir$ + pathSep$ + uhmFile$
         idPOS = Read from file: outputDir$ + pathSep$ + posFile$
         idRep = Read from file: outputDir$ + pathSep$ + repFile$
         idFreq = Read from file: outputDir$ + pathSep$ + freqFile$
         idSynt = Read from file: outputDir$ + pathSep$ + syntFile$
 
-        selectObject: idUhm, idAllignment, idPOS, idRep, idFreq, idSynt
+        # It appears this guarantees order, and makes the allignmentFile first
+        selectObject: idAllignment, idUhm, idPOS, idRep, idFreq, idSynt
         idMerged = Merge
         Save as text file: outputDir$ + pathSep$ + mergedFile$
 

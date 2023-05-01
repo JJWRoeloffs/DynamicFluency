@@ -6,7 +6,7 @@ Output Dir=output
 Language=English
 Show Intermediate Objects=1
 Show Results in Praat=1
-Transcription Format=maus
+Transcription Format=Maus
 
 Uhm-o-meter Settings
 Pre-processing=None
