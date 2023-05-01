@@ -52,37 +52,40 @@ endproc
 
 procedure interval_convolution
     k=1
-    movingStart = start
-    movingEnd = start+window_length_sec
+    movingStart = start + (window_length_sec/2)
+    movingEnd = movingStart + window_length_sec
     nrIntervals = Get number of intervals: 1
+
+    if nrIntervals == 0
+        nrSteps = 0
+        k = 0
+        endif
+
     result# = zero#(nrSteps)
     for i to nrSteps
-        intervalStart = Get start time of interval: 1, k
-        while (intervalStart < movingStart) and (k < nrIntervals)
+        intervalEnd = Get end time of interval: 1, k
+        while (intervalEnd < movingStart) and (k < nrIntervals)
             k+=1
-            intervalStart = Get start time of interval: 1, k
+            intervalEnd = Get end time of interval: 1, k
             endwhile
 
         movingSum = 0
         amountSummed = 0
 
         j=0
-        repeat
-            if k+j <= nrIntervals
-                label$ = Get label of interval: 1, k+j 
-                if label$ != "" and label$ != "MISSING"
-                    movingSum += number(label$)
-                    amountSummed+= 1
-                    endif
-
-                intervalEnd = Get end time of interval: 1, k+j 
-
-                j+=1
-            else
-                # Poor man's break statement
-                intervalEnd = end
+        intervalStart = Get start time of interval: 1, k+j 
+        while (intervalStart < movingEnd) and (k+j <= nrIntervals)
+            label$ = Get label of interval: 1, k+j 
+            if label$ != "" and label$ != "MISSING"
+                movingSum += number(label$)
+                amountSummed+= 1
                 endif
-        until intervalEnd > movingEnd
+
+            j+=1
+            if (k+j <= nrIntervals)
+                intervalStart = Get start time of interval: 1, k+j
+                endif
+            endwhile
 
         movingStart+=(1/steps_per_second)
         movingEnd+=(1/steps_per_second)
@@ -93,8 +96,8 @@ endproc
 
 procedure point_convolution
     k=1
-    movingStart = start
-    movingEnd = start+window_length_sec
+    movingStart = start + (window_length_sec/2)
+    movingEnd = movingStart + window_length_sec
     nrPoints = Get number of points: 1
 
     if nrPoints == 0
@@ -114,16 +117,15 @@ procedure point_convolution
         amountSummed = 0
 
         j=0
-        repeat
-            if k+j <= nrPoints
-                movingSum += 1
-                pointEnd = Get time of point: 1, k+j 
-                j+=1
-            else
-                # Poor man's break statement
-                pointEnd = end
+        pointEnd = Get time of point: 1, k+j
+        while (pointEnd < movingEnd) and (k+j <= nrPoints)
+            movingSum += 1
+
+            j+=1
+            if (k+j <= nrPoints)
+                pointEnd = Get time of point: 1, k+j
                 endif
-        until pointEnd > movingEnd
+            endwhile
 
         movingStart+=(1/steps_per_second)
         movingEnd+=(1/steps_per_second)
