@@ -421,22 +421,24 @@ procedure dynamicity
     # Requires idMerged to be set.
     selectObject: idMerged
     nrTiers = Get number of tiers
+    # allignment tiers plus POS tier
+    nrIrrelevantTiers = (nrAllignmentTiers + 1)
 
-    for i from 1 to nrTiers - nrAllignmentTiers
+    for i from 1 to nrTiers - nrIrrelevantTiers
         selectObject: idMerged
-        idTier[i] = Extract one tier: i + nrAllignmentTiers
+        idTier[i] = Extract one tier: i + nrIrrelevantTiers
         runScript: "scripts" + pathSep$ + "dynamicity.praat", stepsPerSecond, windowLength, kernelType$
         Remove tier: 1
         endfor
 
     selectObject: idTier[1]
-    for i from 2 to nrTiers - nrAllignmentTiers
+    for i from 1 to nrTiers - nrIrrelevantTiers 
         plusObject: idTier[i]
         endfor
 
     dynamicmerge = Merge
 
-    for i from 1 to nrTiers - nrAllignmentTiers
+    for i from 1 to nrTiers - nrIrrelevantTiers 
         removeObject: idTier[i]
         endfor
 
@@ -453,8 +455,8 @@ procedure postprocessing
         soundExt$ = right$(soundFile$, length(soundFile$)-rindex(soundFile$, ".")+1)
 
         allignmentFile$ = replace$(soundFile$, soundExt$, ".allignment.TextGrid", 1)
-        uhmFile$ = replace$(soundFile$, soundExt$, ".uhm.TextGrid", 1)
         posFile$ = replace$(soundFile$, soundExt$, ".pos_tags.TextGrid", 1)
+        uhmFile$ = replace$(soundFile$, soundExt$, ".uhm.TextGrid", 1)
         repFile$ = replace$(soundFile$, soundExt$, ".repetitions.TextGrid", 1)
         freqFile$ = replace$(soundFile$, soundExt$, ".frequencies.TextGrid", 1)
         syntFile$ = replace$(soundFile$, soundExt$, ".syntax.TextGrid", 1)
@@ -462,14 +464,14 @@ procedure postprocessing
         dynamictable$ =  replace$(soundFile$, soundExt$, ".dynamic.txt", 1)
 
         idAllignment = Read from file: outputDir$ + pathSep$ + allignmentFile$
-        idUhm = Read from file: outputDir$ + pathSep$ + uhmFile$
         idPOS = Read from file: outputDir$ + pathSep$ + posFile$
+        idUhm = Read from file: outputDir$ + pathSep$ + uhmFile$
         idRep = Read from file: outputDir$ + pathSep$ + repFile$
         idFreq = Read from file: outputDir$ + pathSep$ + freqFile$
         idSynt = Read from file: outputDir$ + pathSep$ + syntFile$
 
         # It appears this guarantees order, and makes the allignmentFile first
-        selectObject: idAllignment, idUhm, idPOS, idRep, idFreq, idSynt
+        selectObject: idAllignment, idPOS, idUhm, idRep, idFreq, idSynt
         idMerged = Merge
         Save as text file: outputDir$ + pathSep$ + mergedFile$
 
