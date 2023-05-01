@@ -19,7 +19,8 @@ Repititions and Word Frequencies
 To Ignore=uh,uhm
 Max Repitition Read=300
 Database File=databases/main.db
-Database Table=Default
+Database Table=subtlexus
+Database Columns=DYNAMICFLUENCY-DEFAULT
 
 Steps per second=5
 Window length=5

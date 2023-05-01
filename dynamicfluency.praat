@@ -49,9 +49,9 @@ else
     endif
  
 if windows
-    runSystem: "py -3.10 -m dynamicfluency.scripts.make_frequencytagged_girds_from_alligned_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$ + " -a " + allignment$
+    runSystem: "py -3.10 -m dynamicfluency.scripts.make_frequencytagged_girds_from_alligned_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$ + " -a " + allignment$ + " -c " + databaseColumns$
 else
-    runSystem: "python3 -m dynamicfluency.scripts.make_frequencytagged_girds_from_alligned_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$ + " -a " + allignment$
+    runSystem: "python3 -m dynamicfluency.scripts.make_frequencytagged_girds_from_alligned_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$ + " -a " + allignment$  + " -c " + databaseColumns$
     endif
 
 if windows
@@ -166,7 +166,7 @@ procedure uhm_postprocessing
         else
             runSystem: "mv " + inputDir$ + pathSep$ + uhmFile$ + " " + outputDir$ + pathSep$  + uhmFile$
             endif
-        
+
         idObject = Read from file: outputDir$ + pathSep$ + uhmFile$
 
         # Phrases
@@ -188,7 +188,7 @@ procedure uhm_postprocessing
             label$ = Get label of interval: 3, j
             intervalStart = Get start time of interval: 3, j
             intervalEnd = Get end time of interval: 3, j
-            
+
             if label$ == ""
                 phrasesInterval = Get interval at time: 2, (intervalEnd+intervalStart)/2
                 phrasesText$ = Get label of interval: 2, phrasesInterval
@@ -220,10 +220,10 @@ procedure set_config
         endif
 
         numberOfLines = Get number of strings
-    if numberOfLines > 26
+    if numberOfLines > 27
         @settings_error_later
         endif
-    if numberOfLines < 26
+    if numberOfLines < 27
         @settings_error_earlier
         endif
     
@@ -245,6 +245,7 @@ procedure set_config
     maxRepititionRead$ = "300"
     database$ = "databases/main.db"
     databaseTable$ = "Default"
+    databaseColumns$ = "DYNAMICFLUENCY-DEFAULT"
 
     #Dynamicity settings
     stepsPerSecond = 5
@@ -259,58 +260,61 @@ procedure set_config
 
         if left$(line$, sep) == "Input File Spec="
             inputFileSpec$ = right$(line$, len-sep)
-        
+
         elif left$(line$, sep) == "Output Dir="
             outputDir$ = right$(line$, len-sep)
 
         elif left$(line$, sep) == "Language="
             language$ = right$(line$, len-sep)
-            
+
         elif left$(line$, sep) == "Show Intermediate Objects="
             showIntermediateObjects = number(right$(line$, len-sep))
 
         elif left$(line$, sep) == "Show Results in Praat="
             showResultInPraat = number(right$(line$, len-sep))
-            
+
         elif left$(line$, sep) == "Transcription Format="
             transcriptionFormat$ = right$(line$, len-sep)
-        
+
         # Uhm-o-meter Settings
         elif left$(line$, sep) == "Pre-processing="
             preProcessing$ = right$(line$, len-sep)
-            
+
         elif left$(line$, sep) == "Silence Treshhold="
             silenceTreshhold = number(right$(line$, len-sep))
-            
+
         elif left$(line$, sep) == "Minimum dip near peak="
             minimumDipNearPeak = number(right$(line$, len-sep))
-            
+
         elif left$(line$, sep) == "Minimum pause duration="
             minimumPauseDuration = number(right$(line$, len-sep))
-            
+
         elif left$(line$, sep) == "Filled pause threshold="
             filledPauseThreshold = number(right$(line$, len-sep))
-        
+
         # Repititions and Word Frequencies
         elif left$(line$, sep) == "To Ignore="
             toIgnore$ = right$(line$, len-sep)
-            
+
         elif left$(line$, sep) == "Max Repitition Read="
             maxRepititionRead$ = right$(line$, len-sep)
-            
+
         elif left$(line$, sep) == "Database File="
             database$ = right$(line$, len-sep)
-                        
+
         elif left$(line$, sep) == "Database Table="
             databaseTable$ = right$(line$, len-sep)
-        
+
+        elif left$(line$, sep) == "Database Columns="
+            databaseColumns$ = right$(line$, len-sep)
+
         # Dynamicity Settings
         elif left$(line$, sep) == "Steps per second="
             stepsPerSecond = number(right$(line$, len-sep))
 
         elif left$(line$, sep) == "Window length="
             windowLength = number(right$(line$, len-sep))
-        
+
         elif left$(line$, sep) == "Kernel Type="
             kernelType$ = right$(line$, len-sep)
             endif
@@ -365,15 +369,6 @@ procedure process_arguments
     else:
         exitScript: "Unknown transcription type:" + transcriptionFormat$
         endif
-
-    if (language$ == "English" and databaseTable$ == "Default")
-        databaseTable$ = "subtlexus"
-        endif
-
-    if (language$ == "Dutch" and databaseTable$ == "Default")
-        databaseTable$ = "subtlexnl"
-        endif
-
     endproc
 
 procedure assert_output_empty
@@ -409,7 +404,7 @@ procedure settings_error_later
             endif
     endproc
 
-procedure settings_error_earlier       
+procedure settings_error_earlier
     beginPause: "Settings Error"
         comment: "It appears the settings file you specified was made for an earier version of DynamicFluency."
         comment: "If you run the script with the current installation, any new features will run with default settings."
@@ -497,7 +492,7 @@ procedure postprocessing
         else 
             removeObject: idMerged
             endif
-        endfor    
+        endfor
     endproc
 
 # Cleans away "global variables" stored as cashed text files.

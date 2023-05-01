@@ -36,6 +36,16 @@ beginPause: "General Settings"
         option: "Aeneas (from txt)"
     endPause: "Next", 1
 
+if transcription_Format$ == "Aeneas (from TextGrid)"
+    transcription_Format$ = "TextGrid"
+elif transcription_Format$ == "Aeneas (from txt)"
+    transcription_Format$ = "txt"
+    endif
+
+if ((transcription_Format$ == "TextGrid") or (transcription_Format$ == "txt")) and (windows == 0)
+    exitScript: "Aeneas is currently only supported on Windows"
+    endif
+
 beginPause: "Uhm-o-meter settings"
     comment:  "Parameters Syllabe Nuclei:"
     optionMenu: "Pre_processing", 1
@@ -50,7 +60,7 @@ beginPause: "Uhm-o-meter settings"
     real: "Filled_Pause_threshold", 1.00
     endPause: "Next", 1
 
-beginPause: "Uhm-o-meter settings"
+beginPause: "Frequency/Dynamicity settings"
     comment: "Specify words to ignore in repitition and frequency analisys, seperated by only commas."
     sentence: "To_Ignore", "uh,uhm"
     real: "Max_Repitition_Read", 300
@@ -59,6 +69,47 @@ beginPause: "Uhm-o-meter settings"
     comment: "However, you can also use your own, initialised with resources/add_frequency_dictionairy.py"
     sentence: "Database_Table", "Default"
     sentence: "Database_File", "databases/main.db"
+    endPause: "Next", 1
+
+if windows
+    pythonExec$ = "py -3.10 -m"
+    pathSep$ = "\"
+else
+    pythonExec$ = "python3 -m"
+    pathSep$ = "/"
+    endif
+
+if (language$ == "English" and database_Table$ == "Default")
+    database_Table$ = "subtlexus"
+elif (language$ == "Dutch" and database_Table$ == "Default")
+    database_Table$ = "subtlexnl"
+    endif
+
+databaseColumnsPath$ = output_Directory$ + pathSep$ + "column_names.csv"
+if fileReadable(databaseColumnsPath$)
+    exitScript: "Cannot continue procedure. File: " + databaseColumnsPath$ + " exists."
+    endif
+
+runSystem: pythonExec$ + "dynamicfluency.scripts.get_database_columns"
+    ... + " -t " + database_Table$
+    ... + " -d " + database_File$
+    ... + " -d " + output_Directory$
+
+columnsObject = Read Strings from raw text file: databaseColumnsPath$
+columns$ = Get string: 1
+removeObject(columnsObject)
+deleteFile: databaseColumnsPath$
+
+if startsWith(columns$, "DYNAMICFLUENCY-ERROR")
+    exitScript: "The system ran into an issue with the database: " + columns$
+    endif
+
+beginPause: "Frequency settings (continued)"
+    comment: "The frequency database/directory used (likely) has a lot of columns"
+    comment: "Using all of these can be unnecesairy. Select the ones you want to use:"
+    comment: "Please type your selection in the exact same format as given. The options are:"
+    comment: columns$
+    sentence: "Database_Columns", columns$
     endPause: "Next", 1
 
 beginPause: "Dynamicity settings"
@@ -70,17 +121,6 @@ beginPause: "Dynamicity settings"
         option: "moving_average"
 #       option: "gaussian"
     endPause: "Finish", 1
-
-if transcription_Format$ == "Aeneas (from TextGrid)"
-    transcription_Format$ = "TextGrid"
-elif transcription_Format$ == "Aeneas (from txt)"
-    transcription_Format$ = "txt"
-    endif
-
-if ((transcription_Format$ == "TextGrid") or (transcription_Format$ == "txt")) and (windows == 0)
-    exitScript: "Aeneas is currently only supported on Windows"
-    endif
-
 
 # A simple but ugly write to file.
 id = Create Strings from tokens: "configuration", "DynamicFluency configuration file", "_"
@@ -106,10 +146,11 @@ Insert string: 19, "To Ignore=" + to_Ignore$
 Insert string: 20, "Max Repitition Read=" + string$(max_Repitition_Read)
 Insert string: 21, "Database File=" + database_File$ 
 Insert string: 22, "Database Table=" + database_Table$
-Insert string: 23, ""
-Insert string: 24, "Steps per second=" + string$(steps_per_second)
-Insert string: 25, "Window length=" + string$(window_length_sec)
-Insert string: 26, "Kernel Type=" + kernel$
+Insert string: 23, "Database Columns=" + database_Columns$
+Insert string: 24, ""
+Insert string: 25, "Steps per second=" + string$(steps_per_second)
+Insert string: 26, "Window length=" + string$(window_length_sec)
+Insert string: 27, "Kernel Type=" + kernel$
 
 Save as raw text file: configuration_File$
 
