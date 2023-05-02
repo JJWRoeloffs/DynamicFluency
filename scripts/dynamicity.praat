@@ -37,7 +37,7 @@ procedure preposess_intervals
             variable = number(label$)
             Set interval text: 1, i, string$(variable)
         endif
-    endfor  
+    endfor
 endproc
 
 procedure calculate_nr_steps
@@ -52,7 +52,7 @@ endproc
 
 procedure interval_convolution
     k=1
-    movingStart = start + (window_length_sec/2)
+    movingStart = start
     movingEnd = movingStart + window_length_sec
     nrIntervals = Get number of intervals: 1
 
@@ -96,7 +96,7 @@ endproc
 
 procedure point_convolution
     k=1
-    movingStart = start + (window_length_sec/2)
+    movingStart = start
     movingEnd = movingStart + window_length_sec
     nrPoints = Get number of points: 1
 
@@ -138,10 +138,23 @@ procedure write_to_textgrid
     tierName$ = Get tier name: 1
     Insert interval tier: 2, tierName$ + "Dyn"
 
-    movingBoundary = window_length_sec/2
-    Insert boundary: 2, movingBoundary
+    movingBoundary = (window_length_sec/2) - ((1/steps_per_second)/2)
+
+    if movingBoundary <= 0
+        start = 0.01
+    else
+        start = movingBoundary
+        endif
+
+    Insert boundary: 2, start
+
     for i to nrSteps
         movingBoundary+= 1/steps_per_second
+
+        if movingBoundary >= end
+            movingBoundary = end - (0.01 * nrSteps - (i + 1))
+            endif
+
         Insert boundary: 2, movingBoundary
         if result#[i] == undefined
             Set interval text: 2, i+1, ""
