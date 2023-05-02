@@ -4,6 +4,7 @@ General Settings
 Input File Spec=input/*.wav
 Output Dir=output
 Language=English
+Python Version=3.10
 Show Intermediate Objects=1
 Show Results in Praat=1
 Transcription Format=Maus

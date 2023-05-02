@@ -36,29 +36,27 @@ if allignment$ == "maus"
     @maus
     endif
 
-if windows
-    runSystem: "py -3.10 -m dynamicfluency.scripts.make_postagged_grids_from_alligned_grids -d " + outputDir$ + " -a " + allignment$ + " -l" + language$
-else
-    runSystem: "python3 -m dynamicfluency.scripts.make_postagged_grids_from_alligned_grids -d " + outputDir$ + " -a " + allignment$ + " -l" + language$
-    endif
+runSystem: pythonExec$ + "dynamicfluency.scripts.make_postagged_grids_from_alligned_grids"
+    ... + " -d " + outputDir$
+    ... + " -a " + allignment$
+    ... + " -l " + language$
 
-if windows 
-    runSystem: "py -3.10 -m dynamicfluency.scripts.make_repetitionstagged_grids_from_postagged_grids -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
-else
-    runSystem: "python3 -m dynamicfluency.scripts.make_repetitionstagged_grids_from_postagged_grids -d " + outputDir$ + " -m " + maxRepititionRead$ + " -i " + toIgnore$
-    endif
- 
-if windows
-    runSystem: "py -3.10 -m dynamicfluency.scripts.make_frequencytagged_girds_from_alligned_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$ + " -a " + allignment$ + " -c " + databaseColumns$
-else
-    runSystem: "python3 -m dynamicfluency.scripts.make_frequencytagged_girds_from_alligned_grids -d " + outputDir$ + " -t " + databaseTable$ + " -b " + database$ + " -i " + toIgnore$ + " -a " + allignment$  + " -c " + databaseColumns$
-    endif
+runSystem: pythonExec$ + "dynamicfluency.scripts.make_repetitionstagged_grids_from_postagged_grids"
+    ... + " -d " + outputDir$
+    ... + " -m " + maxRepititionRead$
+    ... + " -i " + toIgnore$
 
-if windows
-    runSystem: "py -3.10 -m dynamicfluency.scripts.make_syntax_grids_from_postagged_grids -d " + outputDir$ + " -l" + language$
-else
-    runSystem: "python3 -m dynamicfluency.scripts.make_syntax_grids_from_postagged_grids -d " + outputDir$ + " -l" + language$
-    endif
+runSystem: pythonExec$ + "dynamicfluency.scripts.make_frequencytagged_girds_from_alligned_grids"
+    ... + " -d " + outputDir$
+    ... + " -t " + databaseTable$
+    ... + " -b " + database$
+    ... + " -i " + toIgnore$
+    ... + " -a " + allignment$
+    ... + " -c " + databaseColumns$
+
+runSystem: pythonExec$ + "dynamicfluency.scripts.make_syntax_grids_from_postagged_grids"
+    ... + " -d " + outputDir$
+    ... + " -l" + language$
 
 @postprocessing
 @cleanup
@@ -145,9 +143,13 @@ procedure maus
         allignmentFile$ = replace$(soundFile$, soundExt$, ".allignment.TextGrid", 1)
 
         if windows
-            runSystem: "copy /-Y " + inputDir$ + pathSep$ + mausFile$ + " " + outputDir$ + pathSep$ + allignmentFile$
+            runSystem: "copy /-Y "
+                ... + inputDir$ + pathSep$ + mausFile$
+                ... + " " + outputDir$ + pathSep$ + allignmentFile$
         else
-            runSystem: "cp " + inputDir$ + pathSep$ + mausFile$ + " " + outputDir$ + pathSep$ + allignmentFile$
+            runSystem: "cp "
+                ... + inputDir$ + pathSep$ + mausFile$
+                ... + " " + outputDir$ + pathSep$ + allignmentFile$
             endif
         endfor
     endproc
@@ -162,9 +164,13 @@ procedure uhm_postprocessing
 
         uhmFile$ = replace$(soundFile$, soundExt$, ".uhm.TextGrid", 1)
         if windows
-            runSystem: "move /-Y " + inputDir$ + pathSep$ + uhmFile$ + " " + outputDir$ + pathSep$  + uhmFile$
+            runSystem: "move /-Y "
+                ... + inputDir$ + pathSep$ + uhmFile$
+                ... + " " + outputDir$ + pathSep$  + uhmFile$
         else
-            runSystem: "mv " + inputDir$ + pathSep$ + uhmFile$ + " " + outputDir$ + pathSep$  + uhmFile$
+            runSystem: "mv "
+                ... + inputDir$ + pathSep$ + uhmFile$
+                ... + " " + outputDir$ + pathSep$  + uhmFile$
             endif
 
         idObject = Read from file: outputDir$ + pathSep$ + uhmFile$
@@ -220,10 +226,10 @@ procedure set_config
         endif
 
         numberOfLines = Get number of strings
-    if numberOfLines > 27
+    if numberOfLines > 28
         @settings_error_later
         endif
-    if numberOfLines < 27
+    if numberOfLines < 28
         @settings_error_earlier
         endif
     
@@ -232,6 +238,7 @@ procedure set_config
     #General Settings:
     showResultInPraat = 1
     showIntermediateObjects = 1
+    pythonVersion$ = "3.10"
 
     #uhm-o-meter Settings:
     preProcessing$ = "None"
@@ -266,6 +273,9 @@ procedure set_config
 
         elif left$(line$, sep) == "Language="
             language$ = right$(line$, len-sep)
+
+        elif left$(line$, sep) == "Python Version="
+            pythonVersion$ = right$(line$, len-sep)
 
         elif left$(line$, sep) == "Show Intermediate Objects="
             showIntermediateObjects = number(right$(line$, len-sep))
@@ -349,8 +359,10 @@ procedure process_arguments
     selection$ = right$(inputFileSpec$, len-sep)
 
     if windows
+        pythonExec$ = "py -" + pythonVersion$ + " -m"
         pathSep$ = "\"
     else
+        pythonExec$ = "python" + pythonVersion$ + " -m"
         pathSep$ = "/"
         endif
 

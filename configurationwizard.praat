@@ -24,6 +24,13 @@ beginPause: "General Settings"
     boolean: "Show_Intermediate_Objects", 1
     boolean: "Show_Results_In_Praat", 1
     comment: "________________________________________________________________________________"
+    comment: "What python version do you want DynamicFlyency to use?"
+    comment: "This is the python version you installed dynamicfluency-core in"
+    comment: "A string like ""3.10"" or ""3.11"" is expected."
+    comment: "if you only have one python version installed, simply a ""3"" is enough."
+    sentence: "Python_Version", "3.10"
+    comment: "Please note that the oldest supported python version is 3.9"
+    comment: "________________________________________________________________________________"
     comment: "If aenas is configured, you can use a .TextGrid or .txt with the same name for the transcription"
     comment: "if you are using this, specify the transcription format as txt or Textgird"
     comment: "if you are using an external allignment tool (MAUS or Whisper) instead,"
@@ -72,10 +79,10 @@ beginPause: "Frequency/Dynamicity settings"
     endPause: "Next", 1
 
 if windows
-    pythonExec$ = "py -3.10 -m"
+    pythonExec$ = "py -" + python_Version$ + " -m"
     pathSep$ = "\"
 else
-    pythonExec$ = "python3 -m"
+    pythonExec$ = "python" + python_Version$ + " -m"
     pathSep$ = "/"
     endif
 
@@ -125,32 +132,33 @@ beginPause: "Dynamicity settings"
 # A simple but ugly write to file.
 id = Create Strings from tokens: "configuration", "DynamicFluency configuration file", "_"
 
-Insert string: 2, ""
-Insert string: 3, "General Settings"
-Insert string: 4, "Input File Spec=" + input_File_Spec$
-Insert string: 5, "Output Dir=" + output_Directory$
-Insert string: 6, "Language=" + language$
-Insert string: 7, "Show Intermediate Objects=" + string$(show_Intermediate_Objects) 
-Insert string: 8, "Show Results in Praat=" + string$(show_Results_In_Praat)
-Insert string: 9, "Transcription Format=" + transcription_Format$
-Insert string: 10, ""
-Insert string: 11, "Uhm-o-meter Settings"
-Insert string: 12, "Pre-processing=" + pre_processing$
-Insert string: 13, "Silence Treshhold=" + string$(silence_threshold_dB)
-Insert string: 14, "Minimum dip near peak=" + string$(minimum_dip_near_peak_dB)
-Insert string: 15, "Minimum pause duration=" + string$(minimum_pause_duration_s)
-Insert string: 16, "Filled pause threshold=" + string$(filled_Pause_threshold)
-Insert string: 17, ""
-Insert string: 18, "Repititions and Word Frequencies"
-Insert string: 19, "To Ignore=" + to_Ignore$
-Insert string: 20, "Max Repitition Read=" + string$(max_Repitition_Read)
-Insert string: 21, "Database File=" + database_File$ 
-Insert string: 22, "Database Table=" + database_Table$
-Insert string: 23, "Database Columns=" + database_Columns$
-Insert string: 24, ""
-Insert string: 25, "Steps per second=" + string$(steps_per_second)
-Insert string: 26, "Window length=" + string$(window_length_sec)
-Insert string: 27, "Kernel Type=" + kernel$
+Insert string: 02, ""
+Insert string: 03, "General Settings"
+Insert string: 04, "Input File Spec=" + input_File_Spec$
+Insert string: 05, "Output Dir=" + output_Directory$
+Insert string: 06, "Language=" + language$
+Insert string: 07, "Python Version=" + python_Version$
+Insert string: 08, "Show Intermediate Objects=" + string$(show_Intermediate_Objects) 
+Insert string: 09, "Show Results in Praat=" + string$(show_Results_In_Praat)
+Insert string: 10, "Transcription Format=" + transcription_Format$
+Insert string: 11, ""
+Insert string: 12, "Uhm-o-meter Settings"
+Insert string: 13, "Pre-processing=" + pre_processing$
+Insert string: 14, "Silence Treshhold=" + string$(silence_threshold_dB)
+Insert string: 15, "Minimum dip near peak=" + string$(minimum_dip_near_peak_dB)
+Insert string: 16, "Minimum pause duration=" + string$(minimum_pause_duration_s)
+Insert string: 17, "Filled pause threshold=" + string$(filled_Pause_threshold)
+Insert string: 18, ""
+Insert string: 19, "Repititions and Word Frequencies"
+Insert string: 20, "To Ignore=" + to_Ignore$
+Insert string: 21, "Max Repitition Read=" + string$(max_Repitition_Read)
+Insert string: 22, "Database File=" + database_File$ 
+Insert string: 23, "Database Table=" + database_Table$
+Insert string: 24, "Database Columns=" + database_Columns$
+Insert string: 25, ""
+Insert string: 26, "Steps per second=" + string$(steps_per_second)
+Insert string: 27, "Window length=" + string$(window_length_sec)
+Insert string: 28, "Kernel Type=" + kernel$
 
 Save as raw text file: configuration_File$
 
