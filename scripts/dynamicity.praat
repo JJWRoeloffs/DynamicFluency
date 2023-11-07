@@ -1,12 +1,16 @@
 form Textgrid Convolution
     comment calculate a Moving Average across a textgrid.
     comment does not perform an fft convolution, instead using a dumb algorithm.
-    comment presumes the textgrid is selected.  
+    comment presumes the textgrid is selected.
     real steps_per_second 5
     real window_length_sec 5
     optionmenu kernel 1
         option moving_average
 #       option gaussian
+    optionmenu normalisation 1
+        option amount
+        option window_length
+        option none
     endform
 
 nrTiers    = Get number of tiers
@@ -90,7 +94,13 @@ procedure interval_convolution
         movingStart+=(1/steps_per_second)
         movingEnd+=(1/steps_per_second)
 
-        result#[i] = movingSum/amountSummed
+        if normalisation == 1
+            result#[i] = movingSum/amountSummed
+        elsif normalisation == 2
+            result#[i] = movingSum/window_length_sec
+        elsif normalisation == 3
+            result#[i] = movingSum
+            endif
         endfor
 endproc
 

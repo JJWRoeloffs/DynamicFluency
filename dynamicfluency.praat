@@ -180,9 +180,7 @@ procedure uhm_postprocessing
         for i to nrIntervals
             label$ = Get label of interval: 2, i
             if label$ == ""
-                intervalStart = Get start time of interval: 2, i
-                intervalEnd = Get end time of interval: 2, i
-                Set interval text: 2, i, string$((intervalEnd-intervalStart)/2)
+                Set interval text: 2, i, "1"
             else
                 Set interval text: 2, i, "0"
                 endif
@@ -204,7 +202,7 @@ procedure uhm_postprocessing
                     Set interval text: 3, j, ""
                     endif
             else
-                Set interval text: 3, j, string$((intervalEnd-intervalStart)/2)
+                Set interval text: 3, j, "1"
                 endif
             endfor
 
@@ -439,7 +437,19 @@ procedure dynamicity
     for i from 1 to nrTiers - nrIrrelevantTiers
         selectObject: idMerged
         idTier[i] = Extract one tier: i + nrIrrelevantTiers
-        runScript: "scripts" + pathSep$ + "dynamicity.praat", stepsPerSecond, windowLength, kernelType$
+        
+        # Nivja's addition: Different behavior for different tiers
+        tierName$ = Get tier name: 1
+        head$ = left$(tierName$, 4)
+        if tierName$ = "Pauzes"
+            normalisation$ = "window_length"
+        elsif head$ = "Fill"
+            normalisation$ = "window_length"
+        else
+            normalisation$ = "amount"
+            endif
+
+        runScript: "scripts" + pathSep$ + "dynamicity.praat", stepsPerSecond, windowLength, kernelType$, normalisation$
         Remove tier: 1
         endfor
 
