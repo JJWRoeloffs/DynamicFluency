@@ -37,7 +37,7 @@ procedure preposess_intervals
 
     for i to nrIntervals
         label$ = Get label of interval: 1, i
-        if label$ != "" and label$ != "MISSING"
+        if label$ <> "" and label$ != "MISSING"
             variable = number(label$)
             Set interval text: 1, i, string$(variable)
         endif
@@ -77,10 +77,10 @@ procedure interval_convolution
         amountSummed = 0
 
         j=0
-        intervalStart = Get start time of interval: 1, k+j 
+        intervalStart = Get start time of interval: 1, k+j
         while (intervalStart < movingEnd) and (k+j <= nrIntervals)
-            label$ = Get label of interval: 1, k+j 
-            if label$ != "" and label$ != "MISSING"
+            label$ = Get label of interval: 1, k+j
+            if label$ <> "" and label$ != "MISSING"
                 movingSum += number(label$)
                 amountSummed+= 1
                 endif

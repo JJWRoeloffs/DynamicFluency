@@ -1,11 +1,11 @@
 form Find Speaking Fluency
     comment Dynamic Fluency - understand a speaker's ability as it changes over time.
     comment ________________________________________________________________________________
-    comment You can configure the settings for this application either by going through a 
-    comment graphical settings wizard, or by specifying a settings file that contains them. 
+    comment You can configure the settings for this application either by going through a
+    comment graphical settings wizard, or by specifying a settings file that contains them.
     comment ________________________________________________________________________________
     comment Do you want to run the settings wizard?
-    comment   - Selecting yes will make the program open a configuration wizard in which you can change the 
+    comment   - Selecting yes will make the program open a configuration wizard in which you can change the
     comment     settings for this script and all its subsystems.
     comment   - If you don't run the wizard, a configuration file will be used instead, to be specified below.
     comment   - If you run the wizard, this configuration file will still be created with the name specified below.
@@ -20,7 +20,7 @@ form Find Speaking Fluency
 @process_arguments
 @assert_output_empty
 
-runScript: "scripts" + pathSep$ + "uhm-o-meter" + pathSep$ + "SyllableNuclei.praat", inputFileSpec$, preProcessing$, silenceTreshhold, minimumDipNearPeak, minimumPauseDuration, language$, filledPauseThreshold 
+runScript: "scripts" + pathSep$ + "uhm-o-meter" + pathSep$ + "SyllableNuclei.praat", inputFileSpec$, preProcessing$, silenceTreshhold, minimumDipNearPeak, minimumPauseDuration, language$, filledPauseThreshold
 @uhm_postprocessing
 
 if allignment$ = "aeneas"
@@ -86,7 +86,7 @@ procedure aeneas_windows
 
         selectObject: idScript
         Insert string: 0, base$ + " " + inputDir$ + pathSep$ + soundFile$ + " " + inputDir$ + pathSep$ + tokensFile$[file] + args$ + " " + outputDir$ + pathSep$ + outputFileTokens$
-        Insert string: 0, base$ + " " + inputDir$ + pathSep$ + soundFile$ + " " + inputDir$ + pathSep$ + phrasesFile$[file] + args$ + " " + outputDir$ + pathSep$ + outputFilePhrases$ 
+        Insert string: 0, base$ + " " + inputDir$ + pathSep$ + soundFile$ + " " + inputDir$ + pathSep$ + phrasesFile$[file] + args$ + " " + outputDir$ + pathSep$ + outputFilePhrases$
         endfor
     Insert string: 0, "py -3.10 -m dynamicfluency.scripts.convert_aeneas_to_textgrids -d " + outputDir$
     Save as raw text file: "dynamicfluency_aeneas.auto.cmd"
@@ -94,7 +94,7 @@ procedure aeneas_windows
     runSystem: "dynamicfluency_aeneas.auto.cmd"
     deleteFile: "dynamicfluency_aeneas.auto.cmd"
 
-    for file to nrFiles 
+    for file to nrFiles
         deleteFile: inputDir$ + pathSep$ + tokensFile$[file]
         deleteFile: inputDir$ + pathSep$ + phrasesFile$[file]
         endfor
@@ -179,7 +179,7 @@ procedure uhm_postprocessing
         nrIntervals = Get number of intervals: 2
         for i to nrIntervals
             label$ = Get label of interval: 2, i
-            if label$ == ""
+            if not label$ <> ""
                 Set interval text: 2, i, "1"
             else
                 Set interval text: 2, i, "0"
@@ -193,7 +193,7 @@ procedure uhm_postprocessing
             intervalStart = Get start time of interval: 3, j
             intervalEnd = Get end time of interval: 3, j
 
-            if label$ == ""
+            if not label$ <> ""
                 phrasesInterval = Get interval at time: 2, (intervalEnd+intervalStart)/2
                 phrasesText$ = Get label of interval: 2, phrasesInterval
                 if phrasesText$ == "0"
@@ -432,7 +432,7 @@ procedure settings_error_earlier
             endif
     endproc
 
-procedure dynamicity 
+procedure dynamicity
     # Requires idMerged to be set.
     selectObject: idMerged
     nrTiers = Get number of tiers
@@ -459,13 +459,13 @@ procedure dynamicity
         endfor
 
     selectObject: idTier[1]
-    for i from 1 to nrTiers - nrIrrelevantTiers 
+    for i from 1 to nrTiers - nrIrrelevantTiers
         plusObject: idTier[i]
         endfor
 
     dynamicmerge = Merge
 
-    for i from 1 to nrTiers - nrIrrelevantTiers 
+    for i from 1 to nrTiers - nrIrrelevantTiers
         removeObject: idTier[i]
         endfor
 
@@ -487,7 +487,7 @@ procedure postprocessing
         repFile$ = replace$(soundFile$, soundExt$, ".repetitions.TextGrid", 1)
         freqFile$ = replace$(soundFile$, soundExt$, ".frequencies.TextGrid", 1)
         syntFile$ = replace$(soundFile$, soundExt$, ".syntax.TextGrid", 1)
-        mergedFile$ = replace$(soundFile$, soundExt$, ".merged.TextGrid", 1) 
+        mergedFile$ = replace$(soundFile$, soundExt$, ".merged.TextGrid", 1)
         dynamictable$ =  replace$(soundFile$, soundExt$, ".dynamic.txt", 1)
 
         idAllignment = Read from file: outputDir$ + pathSep$ + allignmentFile$
@@ -509,16 +509,16 @@ procedure postprocessing
         Insert column: 1, "SoundfileID"
         nrowsinfile = Get number of rows
         for irow to nrowsinfile
-           Set string value: irow, "SoundfileID", soundFile$ 
+           Set string value: irow, "SoundfileID", soundFile$
         endfor
         Save as tab-separated file: outputDir$ + pathSep$ + dynamictable$
- 
+
         if (showIntermediateObjects == 0) or (showResultInPraat == 0)
             removeObject: idUhm, idAllignment, idPOS, idRep, idFreq, idSynt
             endif
         if showResultInPraat == 1
             idSound = Read from file: inputDir$ + pathSep$ + soundFile$
-        else 
+        else
             removeObject: idMerged
             endif
         endfor
