@@ -213,6 +213,12 @@ procedure uhm_postprocessing
 
 # Running adn reading the configuration file and setting global variables acordingly.
 procedure set_config
+    if windows
+        pathSep$ = "\"
+    else
+        pathSep$ = "/"
+        endif
+
     if run_Settings_Wizard
         runScript: "configurationwizard.praat", configuration_File$
         endif
@@ -230,13 +236,18 @@ procedure set_config
     if numberOfLines < 28
         @settings_error_earlier
         endif
-    
+
     #Setting defaults, then overriding them if they are present in the file.
 
     #General Settings:
     showResultInPraat = 1
     showIntermediateObjects = 1
-    pythonVersion$ = "3.10"
+
+    if windows
+        pythonExecutable$ = "py -3.11"
+    else
+        pythonExecutable$ = "python3.11"
+        endif
 
     #uhm-o-meter Settings:
     preProcessing$ = "None"
@@ -248,7 +259,7 @@ procedure set_config
     #Repititions and Word Frequencies
     toIgnore$ = "uh,uhm"
     maxRepititionRead$ = "300"
-    database$ = "databases/main.db"
+    database$ = "." + pathSep$ + "databases" + pathSep$ + "main.db"
     databaseTable$ = "Default"
     databaseColumns$ = "DYNAMICFLUENCY-DEFAULT"
 
@@ -256,7 +267,7 @@ procedure set_config
     stepsPerSecond = 5
     windowLength = 5
     kernelType$ = "moving_average"
-    
+
 
     for i to numberOfLines
         line$ = Get string: i
@@ -272,8 +283,8 @@ procedure set_config
         elif left$(line$, sep) == "Language="
             language$ = right$(line$, len-sep)
 
-        elif left$(line$, sep) == "Python Version="
-            pythonVersion$ = right$(line$, len-sep)
+        elif left$(line$, sep) == "Python Executable="
+            pythonExecutable$ = right$(line$, len-sep)
 
         elif left$(line$, sep) == "Show Intermediate Objects="
             showIntermediateObjects = number(right$(line$, len-sep))
@@ -352,17 +363,11 @@ procedure set_config
 # Processes the user input to set more global variables the script uses.
 procedure process_arguments
     len = length(inputFileSpec$)
-    sep = rindex_regex(inputFileSpec$, "[\\/]")
+    sep = rindex(inputFileSpec$, pathSep$)
     inputDir$  = left$(inputFileSpec$, sep - 1)
     selection$ = right$(inputFileSpec$, len-sep)
 
-    if windows
-        pythonExec$ = "py -" + pythonVersion$ + " -m"
-        pathSep$ = "\"
-    else
-        pythonExec$ = "python" + pythonVersion$ + " -m"
-        pathSep$ = "/"
-        endif
+    pythonExec$ = pythonExecutable$ + " -m"
 
     idSoundsList = Create Strings as file list: "SoundsList", inputDir$ + pathSep$ + selection$
     nrFiles      = Get number of strings

@@ -12,6 +12,12 @@ form Find Speaking Fluency Configuration
     sentence Configuration_File configuration.txt
     endform
 
+if windows
+    pathSep$ = "\"
+else
+    pathSep$ = "/"
+    endif
+
 beginPause: "General Settings"
     optionMenu: "Language", 1
         option: "English"
@@ -19,23 +25,27 @@ beginPause: "General Settings"
 #       option Mandarin (not yet implemented)
 #       option Spanish  (not yet implemented)
     comment: "________________________________________________________________________________"
-    sentence: "Input_File_Spec", "input/*.wav"
+    comment: "The expected input and output directory."
+    comment: "Please use backward slashes on windows, and foreward slashes on Unix."
+    comment: "The expected input for audio is is *.wav, (or any other audio file extension),"
+    comment: "where the system will look for matching .TextGrid files of the same name for transcriptsions"
+    sentence: "Input_File_Spec", "input" + pathSep$ + "*.wav"
     sentence: "Output_Directory", "output"
+    comment: "________________________________________________________________________________"
+    comment: "What objects should the resulting praat window contain? (The system always writes to disc)"
     boolean: "Show_Intermediate_Objects", 1
     boolean: "Show_Results_In_Praat", 1
     comment: "________________________________________________________________________________"
-    comment: "What python version do you want DynamicFlyency to use?"
-    comment: "This is the python version you installed dynamicfluency-core in"
-    comment: "A string like ""3.10"" or ""3.11"" is expected."
-    comment: "if you only have one python version installed, simply a ""3"" is enough."
-    sentence: "Python_Version", "3.10"
+    comment: "What python executable do you want DynamicFlyency to use?"
+    comment: "This is the python executable you installed dynamicfluency-core in"
+    comment: "A string like ""python"" ""python3.10"" or ""py -3.11"" is expected."
+    sentence: "Python_Executable", "python"
     comment: "Please note that the oldest supported python version is 3.9"
     comment: "________________________________________________________________________________"
     comment: "If aenas is configured, you can use a .TextGrid or .txt with the same name for the transcription"
     comment: "if you are using this, specify the transcription format as txt or Textgird"
     comment: "if you are using an external allignment tool (MAUS or Whisper) instead,"
     comment: "specify which external type."
-    comment: "else, keep this setting at maus."
     optionMenu: "Transcription_Format", 1
         option: "Maus"
         option: "Whisper"
@@ -75,16 +85,10 @@ beginPause: "Frequency/Dynamicity settings"
     comment: "Setting the database table to default will use the one build-in for the language"
     comment: "However, you can also use your own, initialised with resources/add_frequency_dictionairy.py"
     sentence: "Database_Table", "Default"
-    sentence: "Database_File", "databases/main.db"
+    sentence: "Database_File", "." + pathSep$ + "databases" + pathSep$ + "main.db"
     endPause: "Next", 1
 
-if windows
-    pythonExec$ = "py -" + python_Version$ + " -m"
-    pathSep$ = "\"
-else
-    pythonExec$ = "python" + python_Version$ + " -m"
-    pathSep$ = "/"
-    endif
+pythonExec$ = python_Executable$ + " -m"
 
 if (language$ == "English" and database_Table$ == "Default")
     database_Table$ = "subtlexus"
@@ -137,7 +141,7 @@ Insert string: 03, "General Settings"
 Insert string: 04, "Input File Spec=" + input_File_Spec$
 Insert string: 05, "Output Dir=" + output_Directory$
 Insert string: 06, "Language=" + language$
-Insert string: 07, "Python Version=" + python_Version$
+Insert string: 07, "Python Executable=" + python_Executable$
 Insert string: 08, "Show Intermediate Objects=" + string$(show_Intermediate_Objects) 
 Insert string: 09, "Show Results in Praat=" + string$(show_Results_In_Praat)
 Insert string: 10, "Transcription Format=" + transcription_Format$
