@@ -23,17 +23,15 @@ form Find Speaking Fluency
 runScript: "scripts" + pathSep$ + "uhm-o-meter" + pathSep$ + "SyllableNuclei.praat", inputFileSpec$, preProcessing$, silenceTreshhold, minimumDipNearPeak, minimumPauseDuration, language$, filledPauseThreshold
 @uhm_postprocessing
 
-if alignment$ = "aeneas"
+if alignment$ == "aeneas"
     @aeneas_preprocessing
     if windows
         @aeneas_windows
     else
         @aeneas_unix
         endif
-    endif
-
-if alignment$ == "maus"
-    @maus
+else
+    @move_alignment_files
     endif
 
 runSystem: pythonExec$ + "dynamicfluency.scripts.make_postagged_grids_from_aligned_grids"
@@ -131,24 +129,24 @@ procedure aeneas_preprocessing
         endfor
     endproc
 
-# Moves the .TextGrid files Maus outputs to the correct directory under the correct name
-procedure maus
+# Moves the .TextGrid files Maus and Whisper outpus to the correct directory under the correct name
+procedure move_alignment_files
 
     for file to nrFiles
         selectObject: idSoundsList
         soundFile$ = Get string: file
         soundExt$ = right$(soundFile$, length(soundFile$)-rindex(soundFile$, ".")+1)
 
-        mausFile$ = replace$(soundFile$, soundExt$, ".TextGrid", 1)
+        inputFile$ = replace$(soundFile$, soundExt$, ".TextGrid", 1)
         alignmentFile$ = replace$(soundFile$, soundExt$, ".alignment.TextGrid", 1)
 
         if windows
             runSystem: "copy /-Y "
-                ... + inputDir$ + pathSep$ + mausFile$
+                ... + inputDir$ + pathSep$ + inputFile$
                 ... + " " + outputDir$ + pathSep$ + alignmentFile$
         else
             runSystem: "cp "
-                ... + inputDir$ + pathSep$ + mausFile$
+                ... + inputDir$ + pathSep$ + inputFile$
                 ... + " " + outputDir$ + pathSep$ + alignmentFile$
             endif
         endfor
@@ -378,10 +376,10 @@ procedure process_arguments
     elif transcriptionFormat$ == "Maus"
         alignment$ = "maus"
         nrAlignmentTiers = 3
-    elif transcriptionFormat# == "Whisper"
+    elif transcriptionFormat$ == "Whisper"
         alignment$ = "whisper"
         nrAlignmentTiers = 4
-    else:
+    else
         exitScript: "Unknown transcription type:" + transcriptionFormat$
         endif
     endproc
@@ -509,8 +507,8 @@ procedure postprocessing
         Insert column: 1, "SoundfileID"
         nrowsinfile = Get number of rows
         for irow to nrowsinfile
-           Set string value: irow, "SoundfileID", soundFile$
-        endfor
+            Set string value: irow, "SoundfileID", soundFile$
+            endfor
         Save as tab-separated file: outputDir$ + pathSep$ + dynamictable$
 
         if (showIntermediateObjects == 0) or (showResultInPraat == 0)
