@@ -23,7 +23,7 @@ form Find Speaking Fluency
 runScript: "scripts" + pathSep$ + "uhm-o-meter" + pathSep$ + "SyllableNuclei.praat", inputFileSpec$, preProcessing$, silenceTreshhold, minimumDipNearPeak, minimumPauseDuration, language$, filledPauseThreshold
 @uhm_postprocessing
 
-if allignment$ = "aeneas"
+if alignment$ = "aeneas"
     @aeneas_preprocessing
     if windows
         @aeneas_windows
@@ -32,13 +32,13 @@ if allignment$ = "aeneas"
         endif
     endif
 
-if allignment$ == "maus"
+if alignment$ == "maus"
     @maus
     endif
 
-runSystem: pythonExec$ + "dynamicfluency.scripts.make_postagged_grids_from_alligned_grids"
+runSystem: pythonExec$ + "dynamicfluency.scripts.make_postagged_grids_from_aligned_grids"
     ... + " -d " + outputDir$
-    ... + " -a " + allignment$
+    ... + " -a " + alignment$
     ... + " -l " + language$
 
 runSystem: pythonExec$ + "dynamicfluency.scripts.make_repetitionstagged_grids_from_postagged_grids"
@@ -46,12 +46,12 @@ runSystem: pythonExec$ + "dynamicfluency.scripts.make_repetitionstagged_grids_fr
     ... + " -m " + maxRepititionRead$
     ... + " -i " + toIgnore$
 
-runSystem: pythonExec$ + "dynamicfluency.scripts.make_frequencytagged_girds_from_alligned_grids"
+runSystem: pythonExec$ + "dynamicfluency.scripts.make_frequencytagged_girds_from_aligned_grids"
     ... + " -d " + outputDir$
     ... + " -t " + databaseTable$
     ... + " -b " + database$
     ... + " -i " + toIgnore$
-    ... + " -a " + allignment$
+    ... + " -a " + alignment$
     ... + " -c " + databaseColumns$
 
 runSystem: pythonExec$ + "dynamicfluency.scripts.make_syntax_grids_from_postagged_grids"
@@ -140,16 +140,16 @@ procedure maus
         soundExt$ = right$(soundFile$, length(soundFile$)-rindex(soundFile$, ".")+1)
 
         mausFile$ = replace$(soundFile$, soundExt$, ".TextGrid", 1)
-        allignmentFile$ = replace$(soundFile$, soundExt$, ".allignment.TextGrid", 1)
+        alignmentFile$ = replace$(soundFile$, soundExt$, ".alignment.TextGrid", 1)
 
         if windows
             runSystem: "copy /-Y "
                 ... + inputDir$ + pathSep$ + mausFile$
-                ... + " " + outputDir$ + pathSep$ + allignmentFile$
+                ... + " " + outputDir$ + pathSep$ + alignmentFile$
         else
             runSystem: "cp "
                 ... + inputDir$ + pathSep$ + mausFile$
-                ... + " " + outputDir$ + pathSep$ + allignmentFile$
+                ... + " " + outputDir$ + pathSep$ + alignmentFile$
             endif
         endfor
     endproc
@@ -373,14 +373,14 @@ procedure process_arguments
     nrFiles      = Get number of strings
 
     if (transcriptionFormat$ == "TextGrid") or (transcriptionFormat$ == "txt")
-        allignment$ = "aeneas"
-        nrAllignmentTiers = 2
+        alignment$ = "aeneas"
+        nrAlignmentTiers = 2
     elif transcriptionFormat$ == "Maus"
-        allignment$ = "maus"
-        nrAllignmentTiers = 3
+        alignment$ = "maus"
+        nrAlignmentTiers = 3
     elif transcriptionFormat# == "Whisper"
-        allignment$ = "whisper"
-        nrAllignmentTiers = 4
+        alignment$ = "whisper"
+        nrAlignmentTiers = 4
     else:
         exitScript: "Unknown transcription type:" + transcriptionFormat$
         endif
@@ -436,8 +436,8 @@ procedure dynamicity
     # Requires idMerged to be set.
     selectObject: idMerged
     nrTiers = Get number of tiers
-    # allignment tiers plus POS tier
-    nrIrrelevantTiers = (nrAllignmentTiers + 1)
+    # alignment tiers plus POS tier
+    nrIrrelevantTiers = (nrAlignmentTiers + 1)
 
     for i from 1 to nrTiers - nrIrrelevantTiers
         selectObject: idMerged
@@ -481,7 +481,7 @@ procedure postprocessing
         soundFile$ = Get string: file
         soundExt$ = right$(soundFile$, length(soundFile$)-rindex(soundFile$, ".")+1)
 
-        allignmentFile$ = replace$(soundFile$, soundExt$, ".allignment.TextGrid", 1)
+        alignmentFile$ = replace$(soundFile$, soundExt$, ".alignment.TextGrid", 1)
         posFile$ = replace$(soundFile$, soundExt$, ".pos_tags.TextGrid", 1)
         uhmFile$ = replace$(soundFile$, soundExt$, ".uhm.TextGrid", 1)
         repFile$ = replace$(soundFile$, soundExt$, ".repetitions.TextGrid", 1)
@@ -490,15 +490,15 @@ procedure postprocessing
         mergedFile$ = replace$(soundFile$, soundExt$, ".merged.TextGrid", 1)
         dynamictable$ =  replace$(soundFile$, soundExt$, ".dynamic.txt", 1)
 
-        idAllignment = Read from file: outputDir$ + pathSep$ + allignmentFile$
+        idAlignment = Read from file: outputDir$ + pathSep$ + alignmentFile$
         idPOS = Read from file: outputDir$ + pathSep$ + posFile$
         idUhm = Read from file: outputDir$ + pathSep$ + uhmFile$
         idRep = Read from file: outputDir$ + pathSep$ + repFile$
         idFreq = Read from file: outputDir$ + pathSep$ + freqFile$
         idSynt = Read from file: outputDir$ + pathSep$ + syntFile$
 
-        # It appears this guarantees order, and makes the allignmentFile first
-        selectObject: idAllignment, idPOS, idUhm, idRep, idFreq, idSynt
+        # It appears this guarantees order, and makes the alignmentFile first
+        selectObject: idAlignment, idPOS, idUhm, idRep, idFreq, idSynt
         idMerged = Merge
         Save as text file: outputDir$ + pathSep$ + mergedFile$
 
@@ -514,7 +514,7 @@ procedure postprocessing
         Save as tab-separated file: outputDir$ + pathSep$ + dynamictable$
 
         if (showIntermediateObjects == 0) or (showResultInPraat == 0)
-            removeObject: idUhm, idAllignment, idPOS, idRep, idFreq, idSynt
+            removeObject: idUhm, idAlignment, idPOS, idRep, idFreq, idSynt
             endif
         if showResultInPraat == 1
             idSound = Read from file: inputDir$ + pathSep$ + soundFile$

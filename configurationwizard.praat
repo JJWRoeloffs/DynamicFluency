@@ -44,7 +44,7 @@ beginPause: "General Settings"
     comment: "________________________________________________________________________________"
     comment: "If aenas is configured, you can use a .TextGrid or .txt with the same name for the transcription"
     comment: "if you are using this, specify the transcription format as txt or Textgird"
-    comment: "if you are using an external allignment tool (MAUS or Whisper) instead,"
+    comment: "if you are using an external alignment tool (MAUS or Whisper) instead,"
     comment: "specify which external type."
     optionMenu: "Transcription_Format", 1
         option: "Maus"
