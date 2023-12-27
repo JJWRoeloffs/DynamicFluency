@@ -440,7 +440,7 @@ procedure dynamicity
     for i from 1 to nrTiers - nrIrrelevantTiers
         selectObject: idMerged
         idTier[i] = Extract one tier: i + nrIrrelevantTiers
-        
+
         # Nivja's addition: Different behavior for different tiers
         tierName$ = Get tier name: 1
         head$ = left$(tierName$, 4)

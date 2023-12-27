@@ -41,7 +41,7 @@ form Detect Filled Pauses
   real Filled_Pause_threshold 1.00  ; cut-off higher/lower
   boolean Save_Table 0
   endform
-  
+
 idSnd = selected ("Sound")
 name$ = selected$("Sound")
 idTG  = selected ("TextGrid")
@@ -533,4 +533,3 @@ procedure processData: .idTG, .name$, .type$
       endif
     endfor
   endproc
-  

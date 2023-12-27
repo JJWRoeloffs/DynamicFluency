@@ -8,7 +8,7 @@ form Find Speaking Fluency Configuration
     comment Dynamic Fluency Configuration - Creating a configuration file without running the application.
     comment ________________________________________________________________________________
     comment Please specify the name you want to give the new configuration file.
-    comment If this file already exists, it will be overwritten. 
+    comment If this file already exists, it will be overwritten.
     sentence Configuration_File configuration.txt
     endform
 
@@ -142,7 +142,7 @@ Insert string: 04, "Input File Spec=" + input_File_Spec$
 Insert string: 05, "Output Dir=" + output_Directory$
 Insert string: 06, "Language=" + language$
 Insert string: 07, "Python Executable=" + python_Executable$
-Insert string: 08, "Show Intermediate Objects=" + string$(show_Intermediate_Objects) 
+Insert string: 08, "Show Intermediate Objects=" + string$(show_Intermediate_Objects)
 Insert string: 09, "Show Results in Praat=" + string$(show_Results_In_Praat)
 Insert string: 10, "Transcription Format=" + transcription_Format$
 Insert string: 11, ""
@@ -156,7 +156,7 @@ Insert string: 18, ""
 Insert string: 19, "Repititions and Word Frequencies"
 Insert string: 20, "To Ignore=" + to_Ignore$
 Insert string: 21, "Max Repitition Read=" + string$(max_Repitition_Read)
-Insert string: 22, "Database File=" + database_File$ 
+Insert string: 22, "Database File=" + database_File$
 Insert string: 23, "Database Table=" + database_Table$
 Insert string: 24, "Database Columns=" + database_Columns$
 Insert string: 25, ""
